@@ -24,6 +24,24 @@ bun run dev
 
 El sitio queda en `http://localhost:4321`.
 
+## Ramas
+
+**No se trabaja en `main`.** Cada push a `main` despliega a produccion.
+
+- `develop` - rama de trabajo. Vercel le genera una URL de vista previa propia.
+- `main` - produccion. Solo recibe merges desde `develop`.
+
+```bash
+git checkout develop           # aqui se trabaja
+# ... cambios, commits ...
+git push origin develop        # genera vista previa en Vercel
+
+git checkout main              # promover a produccion
+git merge develop --no-ff
+git push origin main           # despliega
+git checkout develop           # volver a trabajar
+```
+
 ## Comandos
 
 | Comando              | Que hace                                       |

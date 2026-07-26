@@ -66,6 +66,47 @@ antes de saltarsela.
 6. **`bun run build` debe pasar antes de dar una tarea por terminada.**
    Incluye `astro check`. Cero errores.
 
+## Flujo de trabajo con git
+
+**Nunca se trabaja directamente en `main`.** `main` es la rama de produccion:
+cada push a `main` dispara un despliegue automatico en Vercel.
+
+```
+develop  <- todo el trabajo ocurre aqui
+   |
+   | merge cuando esta verificado
+   v
+main     <- despliega a produccion automaticamente
+```
+
+| Rama       | Proposito                                                |
+| ---------- | -------------------------------------------------------- |
+| `main`     | Produccion. Solo recibe merges desde `develop`.          |
+| `develop`  | Integracion. Rama de trabajo por defecto.                |
+| `feat/...` | Opcional, para cambios grandes. Se fusiona en `develop`. |
+
+Vercel genera un **despliegue de vista previa** para `develop` con su propia
+URL. Sirve para revisar en produccion real antes de tocar el sitio publico.
+
+### Publicar cambios
+
+```bash
+# En develop, con el trabajo terminado
+bun run build          # debe pasar; incluye astro check
+git add -A && git commit -m "..."
+git push origin develop
+
+# Promover a produccion
+git checkout main
+git merge develop --no-ff
+git push origin main   # dispara el despliegue
+git checkout develop   # volver al sitio de trabajo
+```
+
+`--no-ff` es deliberado: fuerza un commit de fusion, de modo que el historial
+de `main` muestra que entro cada publicacion y permite revertir una entrega
+completa con un solo comando.
+
 ## Estructura
 
 ```

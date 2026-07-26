@@ -28,10 +28,10 @@ export const site = {
 
   location: { es: 'Cuenca, Ecuador', en: 'Cuenca, Ecuador' },
 
-  /** Vacio = no se renderiza el enlace. Pendiente de definir por el autor. */
+  /** Vacio = el enlace no se renderiza. */
   social: {
-    github: '',
-    linkedin: '',
+    github: 'https://github.com/pumamz',
+    linkedin: 'https://www.linkedin.com/in/pumamz',
     x: '',
   },
 
