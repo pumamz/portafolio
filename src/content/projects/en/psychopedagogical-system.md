@@ -11,19 +11,19 @@ problem: >-
   information, storing data was not enough: each professional had to see only
   what concerned them.
 solution: >-
-  We built a complete platform with Spring Boot on the backend and React with
+  I built a complete platform with Spring Boot on the backend and React with
   TypeScript and Tailwind CSS on the frontend, backed by PostgreSQL. The key
   architectural decision was splitting the system into independent modules with
   role-based permissions cutting across all of them, rather than one large CRUD
-  with scattered validation. We chose PostgreSQL over MySQL for its strict
+  with scattered validation. I chose PostgreSQL over MySQL for its strict
   referential integrity, which is non-negotiable when the records are clinical
   histories.
 impact: >-
   Delivered to UDIPSAI covering the full care cycle: patients, medical records,
-  appointments, users, permissions and follow-ups. This was my highest
-  responsibility project: I led the team, assigned tasks, reviewed my teammates'
-  code and validated every feature before signing it off.
-role: Project lead and full-stack developer
+  appointments, users, permissions and follow-ups. I developed it end to end on
+  my own: data model, backend, frontend and permission system, owning every
+  technical decision.
+role: Full-stack developer (solo project)
 period: 2025 - 2026
 stack:
   - Spring Boot

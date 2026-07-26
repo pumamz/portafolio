@@ -18,10 +18,12 @@ solution: >-
   al rechazo del organismo. Un comprobante rechazado obliga a rehacer el proceso
   con el cliente delante, asi que preferimos fallar temprano y dentro del sistema.
 impact: >-
-  Sistema funcional que emite comprobantes conformes a la normativa del SRI.
-  Su valor real como pieza de portafolio es que la integracion se hizo contra una
-  especificacion externa, obligatoria y no negociable: el organismo no adapta su
-  API a lo que uno programe, exactamente igual que ocurre en la industria.
+  El sistema llego a emitir comprobantes aceptados por el SRI en su ambiente de
+  pruebas, que es la certificacion previa obligatoria antes de facturar de
+  verdad. Ese detalle importa: significa que los documentos pasaron las
+  validaciones reales del organismo, no solo las mias. La integracion se hizo
+  contra una especificacion externa, obligatoria y no negociable, que es
+  exactamente como se trabaja en la industria.
 role: Desarrollador full-stack
 period: 2025 - 2026
 stack:
@@ -38,10 +40,13 @@ draft: false
 Proyecto universitario.
 
 <!--
-TODO (Daniel): datos que reforzarian este caso:
-  - Numero de facturas emitidas en pruebas o en uso real
-  - Cuantos modulos o entidades tiene el sistema
+CONFIRMADO 2026-07-26: comprobantes aceptados por el SRI en su ambiente de
+pruebas (certificacion previa obligatoria).
+
+TODO (Daniel):
+  - Numero aproximado de comprobantes emitidos en la certificacion
   - Tamano del equipo y tu rol exacto
-  - Algun problema concreto de la API del SRI que tuvieras que resolver
-    (los detalles de integracion son lo que mas valora un tech lead)
+  - Algun problema concreto de la API del SRI que tuvieras que resolver.
+    Los detalles de integracion son lo que mas valora un tech lead: una
+    anecdota de depuracion real vale mas que la lista de modulos.
 -->

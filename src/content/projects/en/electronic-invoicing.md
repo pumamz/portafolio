@@ -18,10 +18,11 @@ solution: >-
   rejection. A rejected receipt means redoing the process with the customer
   standing there, so we chose to fail early and inside the system.
 impact: >-
-  A working system that issues receipts compliant with SRI regulations. Its real
-  value as portfolio evidence is that the integration was built against an
-  external, mandatory and non-negotiable specification: the authority does not
-  adapt its API to your code, exactly as happens in industry.
+  The system issued receipts accepted by the SRI in its test environment, which
+  is the mandatory certification step before invoicing for real. That detail
+  matters: it means the documents passed the authority's own validations, not
+  just mine. The integration was built against an external, mandatory and
+  non-negotiable specification, which is exactly how the industry works.
 role: Full-stack developer
 period: 2025 - 2026
 stack:

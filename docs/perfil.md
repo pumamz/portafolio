@@ -71,16 +71,26 @@ comunicacion tecnica, responsabilidad y compromiso, aprendizaje continuo.
 - **Contexto:** UDIPSAI - Universidad Catolica de Cuenca
 - **Periodo:** 2025 - 2026
 - **Tipo:** Proyecto de Vinculacion con la Sociedad
-- **Rol:** Lider del proyecto (asignacion de tareas, revision de codigo,
-  validacion de funcionalidades)
+- **Rol:** Desarrollador full-stack. **Proyecto individual**, confirmado por el
+  autor el 2026-07-26.
 - **Stack:** Spring Boot, React, TypeScript, Tailwind CSS, PostgreSQL
 - **Modulos:** gestion de pacientes, fichas medicas, citas, usuarios, permisos
   y seguimientos
 
 **Por que es el proyecto principal:** es el unico con un usuario real fuera del
 aula (una unidad universitaria de atencion), trata datos sensibles de salud e
-implica un sistema de permisos. Ademas es el mas reciente y el de mayor
-responsabilidad de liderazgo.
+implica un sistema de permisos. Ademas se desarrollo de forma individual, de
+extremo a extremo.
+
+> **DISCREPANCIA CON EL CV - pendiente de resolver.**
+> El CV afirma "Participacion como lider del proyecto, asignando tareas,
+> revisando codigo y validando funcionalidades". El autor confirmo el
+> 2026-07-26 que fue un proyecto individual.
+>
+> El sitio ya refleja la version correcta (proyecto individual). **El CV debe
+> corregirse** antes de enviarlo junto con el enlace al portafolio: una
+> contradiccion entre ambos documentos cuesta mas credibilidad que cualquier
+> logro que pudiera anadir la mencion al liderazgo.
 
 ### 2. Sistema de Facturacion Electronica
 
