@@ -11,19 +11,20 @@ problem: >-
   tratarse de informacion clinica, no bastaba con almacenar datos: cada
   profesional debia ver unicamente lo que le correspondia.
 solution: >-
-  Construi una plataforma completa con Spring Boot en el backend y React con
+  Construimos una plataforma completa con Spring Boot en el backend y React con
   TypeScript y Tailwind CSS en el frontend, sobre PostgreSQL. La decision de
   arquitectura mas importante fue separar el sistema en modulos independientes
   con un control de permisos por rol atravesando todos ellos, en lugar de un
-  unico CRUD con validaciones dispersas. Elegi PostgreSQL por encima de MySQL por
-  su manejo de integridad referencial estricta, algo no negociable cuando los
+  unico CRUD con validaciones dispersas. Elegimos PostgreSQL por encima de MySQL
+  por su manejo de integridad referencial estricta, algo no negociable cuando los
   registros son historiales clinicos.
 impact: >-
   Entregado a UDIPSAI cubriendo el ciclo completo de atencion: pacientes, fichas
-  medicas, citas, usuarios, permisos y seguimientos. Lo desarrolle integramente
-  yo: modelo de datos, backend, frontend y sistema de permisos, asumiendo cada
-  decision tecnica de principio a fin.
-role: Desarrollador full-stack (proyecto individual)
+  medicas, citas, usuarios, permisos y seguimientos. Fue mi proyecto de mayor
+  responsabilidad: lidere un equipo de cuatro personas, asigne tareas, revise el
+  codigo de mis companeros y valide cada funcionalidad antes de darla por
+  terminada.
+role: Lider de proyecto y desarrollador full-stack
 period: 2025 - 2026
 stack:
   - Spring Boot
@@ -40,11 +41,10 @@ draft: false
 Proyecto de Vinculacion con la Sociedad de la Universidad Catolica de Cuenca.
 
 <!--
-CONFIRMADO 2026-07-26: proyecto individual, sin equipo. El CV afirma
-liderazgo de equipo en este proyecto; esa mencion debe corregirse en el CV
-para que no contradiga al sitio.
+CONFIRMADO 2026-07-26: lidero un equipo de cuatro personas. Coincide con
+lo que declara el CV.
 
-TODO (Daniel): sigue faltando lo que mas peso tiene:
+TODO (Daniel): sigue faltando lo que mas peso tiene ante un reclutador:
   - Cuantos profesionales de UDIPSAI usan el sistema
   - Cuantos pacientes o fichas gestiona
   - Cuantos modulos o tablas tiene finalmente

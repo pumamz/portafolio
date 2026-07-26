@@ -15,16 +15,17 @@ solution: >-
   resolvio con un servicio externo en lugar de montar y mantener un servidor solo
   para un formulario.
 impact: >-
-  El club dispone de una direccion web propia que puede compartir para darse a
-  conocer y recibir mensajes de personas interesadas. Es mi proyecto mas sencillo
-  tecnicamente, y a la vez el unico centrado en comunicacion y diseno mas que en
-  logica de negocio.
+  El club tiene desde entonces una direccion web propia, codary.club, en linea y
+  operativa, que puede compartir para darse a conocer y recibir mensajes de
+  personas interesadas. Es mi proyecto mas sencillo tecnicamente y a la vez el
+  unico centrado en comunicacion y diseno mas que en logica de negocio.
 role: Desarrollador frontend
 period: 2026
 stack:
   - React
   - Tailwind CSS
   - Vercel
+liveUrl: https://www.codary.club/
 featured: false
 order: 4
 draft: false

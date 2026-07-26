@@ -17,12 +17,13 @@ solution: >-
   al final: el control de accesos no es una pantalla de login, es una regla que
   atraviesa cada endpoint del sistema.
 impact: >-
-  Fue el primer sistema que desplegue fuera de mi maquina, en una instancia EC2
-  de AWS. Eso significo enfrentarme a todo lo que un entorno local esconde:
-  aprovisionar el servidor, configurar el sistema operativo, abrir los puertos
-  correctos en los grupos de seguridad, gestionar variables de entorno y dejar la
-  aplicacion accesible desde internet. Un sistema que funciona en local no
-  funciona sin mas en un servidor, y aqui aprendi exactamente por que.
+  Primer sistema que lidere de principio a fin, coordinando al equipo y
+  repartiendo el trabajo. Tambien el primero que desplegue fuera de mi maquina,
+  en una instancia EC2 de AWS: aprovisionar el servidor, configurar el sistema
+  operativo, abrir los puertos correctos en los grupos de seguridad, gestionar
+  variables de entorno y dejar la aplicacion accesible desde internet. Un sistema
+  que funciona en local no funciona sin mas en un servidor, y aqui aprendi
+  exactamente por que.
 role: Lider de proyecto y desarrollador full-stack
 period: 2024
 stack:
@@ -41,9 +42,10 @@ draft: false
 Proyecto universitario.
 
 <!--
-CONFIRMADO 2026-07-26: desplegado en una instancia EC2 de AWS.
+CONFIRMADO 2026-07-26: desplegado en una instancia EC2 de AWS, y liderazgo
+del proyecto tal como lo declara el CV.
 
 TODO (Daniel):
-  - Tamano del equipo que lideraste (el CV menciona liderazgo aqui)
+  - Tamano exacto del equipo que lideraste
   - Si el gimnasio era un cliente real o un caso de estudio academico
 -->

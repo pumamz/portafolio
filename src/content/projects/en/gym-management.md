@@ -16,12 +16,12 @@ solution: >-
   end: access control is not a login screen, it is a rule that cuts across every
   endpoint in the system.
 impact: >-
-  The first system I deployed outside my own machine, onto an AWS EC2 instance.
-  That meant facing everything a local environment hides: provisioning the
-  server, configuring the operating system, opening the right ports in security
-  groups, managing environment variables and making the application reachable
-  from the internet. A system that works locally does not simply work on a
-  server, and this is where I learned exactly why.
+  The first system I led end to end, coordinating the team and distributing the
+  work. Also the first I deployed outside my own machine, onto an AWS EC2
+  instance: provisioning the server, configuring the operating system, opening
+  the right ports in security groups, managing environment variables and making
+  the application reachable from the internet. A system that works locally does
+  not simply work on a server, and this is where I learned exactly why.
 role: Project lead and full-stack developer
 period: 2024
 stack:

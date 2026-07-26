@@ -15,15 +15,17 @@ solution: >-
   handled through an external service rather than standing up and maintaining a
   server just for one form.
 impact: >-
-  The club now has its own web address to share and receive messages from
-  interested people. It is my simplest project technically, and at the same time
-  the only one centred on communication and design rather than business logic.
+  The club has had its own web address ever since, codary.club, live and running,
+  to share and receive messages from interested people. It is my simplest project
+  technically, and at the same time the only one centred on communication and
+  design rather than business logic.
 role: Frontend developer
 period: 2026
 stack:
   - React
   - Tailwind CSS
   - Vercel
+liveUrl: https://www.codary.club/
 featured: false
 order: 4
 draft: false
