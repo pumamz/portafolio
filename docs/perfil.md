@@ -14,13 +14,13 @@
 
 ## Identidad
 
-| Campo               | Valor                                          |
-| ------------------- | ---------------------------------------------- |
-| Nombre completo     | Cesar Daniel Puma Munoz                        |
-| Nombre para el sitio| Daniel Puma                                    |
-| Titulo en el CV     | Estudiante de Ingenieria en Software           |
-| Correo              | dpumamunoz@gmail.com                           |
-| Ubicacion publica   | Cuenca, Ecuador                                |
+| Campo                | Valor                                |
+| -------------------- | ------------------------------------ |
+| Nombre completo      | Cesar Daniel Puma Munoz              |
+| Nombre para el sitio | Daniel Puma                          |
+| Titulo en el CV      | Estudiante de Ingenieria en Software |
+| Correo               | dpumamunoz@gmail.com                 |
+| Ubicacion publica    | Cuenca, Ecuador                      |
 
 **Nota sobre el nombre:** el CV usa el nombre legal completo. Para el sitio se
 usa "Daniel Puma": mas corto, mas memorable y mas facil de buscar. El nombre
@@ -44,13 +44,13 @@ completo debe seguir apareciendo en el CV y en documentos formales.
 
 ## Competencias tecnicas
 
-| Categoria       | Tecnologias                                              |
-| --------------- | -------------------------------------------------------- |
-| Lenguajes       | Java, JavaScript, TypeScript, SQL, HTML5, CSS3           |
-| Backend         | Spring Boot, Spring Security (JWT), Node.js              |
-| Frontend        | React, Angular, Tailwind CSS, Bootstrap                  |
-| Bases de datos  | MySQL, PostgreSQL, MongoDB                               |
-| Cloud y DevOps  | AWS, Vercel, Railway, entornos Linux                     |
+| Categoria      | Tecnologias                                    |
+| -------------- | ---------------------------------------------- |
+| Lenguajes      | Java, JavaScript, TypeScript, SQL, HTML5, CSS3 |
+| Backend        | Spring Boot, Spring Security (JWT), Node.js    |
+| Frontend       | React, Angular, Tailwind CSS, Bootstrap        |
+| Bases de datos | MySQL, PostgreSQL, MongoDB                     |
+| Cloud y DevOps | AWS, Vercel, Railway, entornos Linux           |
 
 ## Competencias transversales
 

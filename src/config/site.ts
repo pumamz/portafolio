@@ -17,8 +17,8 @@ export const site = {
   /** Describe lo que hace, no un titulo academico que aun esta en curso.
    *  La condicion de estudiante se declara de forma explicita en "Sobre mi". */
   jobTitle: {
-    es: 'Desarrollador de Software',
-    en: 'Software Developer',
+    es: 'Desarrollador Full-Stack',
+    en: 'Full-Stack Developer',
   },
 
   /** TODO: reemplazar por el dominio real antes del primer deploy publico. */
@@ -44,8 +44,8 @@ export const site = {
 
   /** Meta description. Entre 150 y 160 caracteres es lo optimo. */
   description: {
-    es: 'Desarrollador de software en Cuenca, Ecuador. Construyo sistemas empresariales completos con Spring Boot, React y PostgreSQL, del backend al despliegue.',
-    en: 'Software developer in Cuenca, Ecuador. I build complete enterprise systems with Spring Boot, React and PostgreSQL, from backend to deployment.',
+    es: 'Desarrollador full-stack en Cuenca, Ecuador. Construyo sistemas empresariales completos con Spring Boot, React y PostgreSQL, del backend al despliegue.',
+    en: 'Full-stack developer in Cuenca, Ecuador. I build complete enterprise systems with Spring Boot, React and PostgreSQL, from backend to deployment.',
   },
 
   ogImage: '/og-default.png',
