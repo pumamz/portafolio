@@ -1,0 +1,85 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+/**
+ * Conmutador de tema claro / oscuro.
+ *
+ * Deliberadamente NO es un componente de React. Version anterior: isla de
+ * React con `client:load`, que costaba 180 KB de runtime para un boton con
+ * un unico manejador de clic. Esto lo hace con menos de 1 KB.
+ *
+ * Truco clave: el icono visible se decide con CSS a partir de la clase
+ * `.dark` del <html>, no con estado de JavaScript. Por eso el marcado
+ * incluye los dos iconos y el JS solo alterna una clase.
+ */
+---
+
+<button
+  type="button"
+  data-theme-toggle
+  aria-label={t('nav.toggleTheme')}
+  title={t('nav.toggleTheme')}
+  class="text-text border-border hover:border-border-strong grid size-10 place-items-center rounded-full border transition-colors duration-150"
+>
+  {/* Sol: visible en tema claro */}
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    class="size-5 dark:hidden"
+  >
+    <circle cx="12" cy="12" r="4"></circle>
+    <path
+      d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+    ></path>
+  </svg>
+
+  {/* Luna: visible en tema oscuro */}
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="hidden size-5 dark:block"
+  >
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+  </svg>
+</button>
+
+<script>
+  /**
+   * Delegacion de eventos en `document`, no un listener en el boton.
+   *
+   * Motivo: con view transitions el <body> se reemplaza en cada navegacion
+   * y un listener atado al boton moriria con el. `document` sobrevive a los
+   * intercambios, asi que un unico registro basta para toda la sesion.
+   */
+  const syncPressed = () => {
+    const isDark = document.documentElement.classList.contains('dark');
+    document
+      .querySelectorAll('[data-theme-toggle]')
+      .forEach((el) => el.setAttribute('aria-pressed', String(isDark)));
+  };
+
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement | null;
+    if (!target?.closest('[data-theme-toggle]')) return;
+
+    const next = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+    syncPressed();
+  });
+
+  document.addEventListener('astro:after-swap', syncPressed);
+  syncPressed();
+</script>

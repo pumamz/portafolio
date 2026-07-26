@@ -1,0 +1,126 @@
+---
+import { getLangFromUrl, useTranslations, path } from '../../i18n/utils';
+import { site } from '../../config/site';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+// El nombre se parte para poder tratar el apellido de forma distinta.
+// Es lo que convierte un titular en una composicion tipografica.
+const [firstName, ...rest] = site.name.split(' ');
+const lastName = rest.join(' ');
+---
+
+<section class="relative flex min-h-svh flex-col justify-center overflow-hidden px-6 pt-20 pb-24">
+  {
+    /* Resplandor de vino. `pointer-events-none` para que no intercepte
+      clics, y aria-hidden porque es puramente decorativo. */
+  }
+  <div
+    aria-hidden="true"
+    class="bg-accent/15 pointer-events-none absolute -top-40 -right-40 -z-10 size-[40rem] rounded-full blur-[120px]"
+  >
+  </div>
+
+  <div class="mx-auto w-full max-w-5xl">
+    <p
+      class="reveal text-text-muted font-mono text-xs tracking-[0.25em] uppercase"
+      style="--delay: 0ms"
+    >
+      {t('hero.role')}
+    </p>
+
+    <h1 class="mt-6 text-5xl">
+      <span class="reveal block" style="--delay: 80ms">{firstName}</span>
+      {
+        lastName && (
+          <span class="reveal text-accent block" style="--delay: 160ms">
+            {lastName}
+          </span>
+        )
+      }
+    </h1>
+
+    <p class="reveal text-text-muted mt-8 max-w-prose text-lg text-balance" style="--delay: 260ms">
+      {site.description[lang]}
+    </p>
+
+    <div class="reveal mt-10 flex flex-wrap items-center gap-4" style="--delay: 340ms">
+      <a
+        href={`${path(lang)}#contact`}
+        class="bg-accent text-on-accent hover:bg-accent-hover rounded-full px-7 py-3.5 text-base font-medium transition-colors duration-150"
+      >
+        {t('hero.cta.primary')}
+      </a>
+
+      <a
+        href={`${path(lang)}#work`}
+        class="border-border-strong hover:border-accent hover:text-accent rounded-full border px-7 py-3.5 text-base font-medium transition-colors duration-150"
+      >
+        {t('hero.cta.secondary')}
+      </a>
+    </div>
+  </div>
+
+  {/* Indicador de scroll. Solo desde sm: en movil el pulgar ya sabe. */}
+  <div
+    class="text-text-faint absolute inset-x-0 bottom-8 hidden justify-center sm:flex"
+    aria-hidden="true"
+  >
+    <span class="scroll-hint font-mono text-[0.65rem] tracking-[0.3em] uppercase">
+      {t('hero.scroll')}
+    </span>
+  </div>
+</section>
+
+<style>
+  /* Entrada escalonada. Cada elemento lleva su propio --delay inline,
+     lo que evita escribir una regla CSS por elemento. */
+  .reveal {
+    animation: reveal 700ms var(--ease-out-quint) both;
+    animation-delay: var(--delay, 0ms);
+  }
+
+  @keyframes reveal {
+    from {
+      opacity: 0;
+      transform: translateY(1.25rem);
+      /* El recorte hace que el texto "emerja" desde abajo en lugar de
+         solo deslizarse. Es lo que da caracter al titular. */
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      clip-path: inset(0 0 -20% 0);
+    }
+  }
+
+  .scroll-hint {
+    animation: bob 2.4s ease-in-out infinite;
+  }
+
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.5;
+    }
+    50% {
+      transform: translateY(0.4rem);
+      opacity: 1;
+    }
+  }
+
+  /* La regla global de global.css ya neutraliza las animaciones, pero
+     `both` deja el estado inicial congelado (invisible). Hay que
+     restaurar explicitamente la visibilidad o el hero se ve vacio. */
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      animation: none;
+      opacity: 1;
+      transform: none;
+      clip-path: none;
+    }
+  }
+</style>

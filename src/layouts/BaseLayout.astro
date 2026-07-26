@@ -1,0 +1,119 @@
+---
+import '@fontsource-variable/bricolage-grotesque';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/global.css';
+
+import { site } from '../config/site';
+import { getLangFromUrl, useTranslations, localeCodes, otherLang, path } from '../i18n/utils';
+import { ClientRouter } from 'astro:transitions';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Ruta equivalente en el otro idioma, para hreflang y el conmutador. */
+  altPath?: string;
+}
+
+const { title, description, altPath } = Astro.props;
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const other = otherLang(lang);
+
+const desc = description ?? site.description[lang];
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const alternate = new URL(altPath ?? path(other), Astro.site);
+const ogImage = new URL(site.ogImage, Astro.site);
+
+/**
+ * Datos estructurados. Google los usa para el panel de conocimiento
+ * y algunos ATS los leen al indexar perfiles.
+ */
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  jobTitle: site.jobTitle[lang],
+  email: `mailto:${site.email}`,
+  url: site.url,
+  sameAs: Object.values(site.social).filter(Boolean),
+};
+---
+
+<!doctype html>
+<html lang={localeCodes[lang]} class="scroll-pt-24">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- hreflang: le dice a Google que son la misma pagina en dos idiomas,
+         evitando que las trate como contenido duplicado. -->
+    <link rel="alternate" hreflang={lang} href={canonical} />
+    <link rel="alternate" hreflang={other} href={alternate} />
+    <link rel="alternate" hreflang="x-default" href={new URL(path('es'), Astro.site)} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={localeCodes[lang].replace('-', '_')} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    <!-- Tema: se aplica ANTES del primer pintado para evitar el
+         destello blanco al cargar en modo oscuro. Por eso es inline
+         y sincrono, no un componente. -->
+    <script is:inline>
+      (() => {
+        const apply = () => {
+          const stored = localStorage.getItem('theme');
+          const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.toggle(
+            'dark',
+            stored === 'dark' || (!stored && prefersDark),
+          );
+        };
+
+        apply();
+
+        // Con view transitions el <head> se reemplaza pero este script no
+        // se vuelve a ejecutar, asi que el tema se perderia al navegar.
+        // La guarda evita registrar el listener dos veces.
+        if (!window.__themeListenerAttached) {
+          window.__themeListenerAttached = true;
+          document.addEventListener('astro:after-swap', apply);
+        }
+      })();
+    </script>
+
+    <ClientRouter />
+  </head>
+
+  <body class="bg-bg text-text antialiased">
+    <a
+      href="#main"
+      class="focus-visible:bg-accent focus-visible:text-on-accent sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-50 focus-visible:rounded-md focus-visible:px-4 focus-visible:py-2"
+    >
+      {t('nav.skipToContent')}
+    </a>
+
+    <Header altPath={altPath} />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>

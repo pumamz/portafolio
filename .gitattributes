@@ -1,0 +1,18 @@
+# Normaliza los finales de linea a LF en el repositorio.
+# Sin esto, un colaborador en otro sistema operativo generaria diffs falsos
+# de ficheros enteros por diferencias CRLF/LF invisibles.
+* text=auto eol=lf
+
+# Binarios: nunca convertir.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# Ficheros de bloqueo: se generan, no se revisan a mano.
+bun.lock linguist-generated=true

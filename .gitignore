@@ -1,0 +1,35 @@
+# build output
+dist/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
+.env
+.env.production
+
+# Documentos personales. El CV en PDF NO se versiona: contiene telefono y
+# direccion, y este repositorio es publico. La informacion profesional vive
+# extraida y depurada en docs/perfil.md.
+# Si mas adelante se quiere ofrecer el CV para descarga, colocar en public/
+# una version SIN datos de contacto personales y anadir aqui una excepcion:
+#   !public/cv-*.pdf
+*.pdf
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/
+
+# vscode setting folder
+.vscode/

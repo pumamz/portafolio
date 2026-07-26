@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hero from '../../components/sections/Hero.astro';
+import { site } from '../../config/site';
+import { path } from '../../i18n/utils';
+
+const lang = 'en' as const;
+---
+
+<BaseLayout title={`${site.name} - ${site.jobTitle[lang]}`} altPath={path('es')}>
+  <Hero />
+</BaseLayout>

@@ -1,0 +1,30 @@
+---
+import { getLangFromUrl, otherLang, path } from '../i18n/utils';
+import { languages } from '../i18n/ui';
+
+interface Props {
+  /** Ruta equivalente en el otro idioma. Si no se pasa, va a la portada. */
+  altPath?: string;
+}
+
+const { altPath } = Astro.props;
+
+const lang = getLangFromUrl(Astro.url);
+const other = otherLang(lang);
+const href = altPath ?? path(other);
+---
+
+{
+  /* Un enlace, no un boton: cambiar de idioma es navegar a otra URL.
+    Usar un <button> con JavaScript romperia la apertura en pestana
+    nueva y el rastreo de los buscadores. */
+}
+<a
+  href={href}
+  hreflang={other}
+  lang={other}
+  class="text-text-muted hover:text-text border-border hover:border-border-strong rounded-full border px-3 py-2 font-mono text-xs tracking-widest uppercase transition-colors duration-150"
+>
+  <span class="sr-only">{languages[other]}</span>
+  <span aria-hidden="true">{other}</span>
+</a>
