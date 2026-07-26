@@ -5,9 +5,9 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  // TODO: reemplazar por la URL real de produccion antes del primer deploy.
-  // Se usa para generar sitemap.xml, canonical y og:url absolutos.
-  site: 'https://portafolio.vercel.app',
+  // URL de produccion. Se usa para generar sitemap.xml, canonical y og:url
+  // absolutos. Debe coincidir con `url` en src/config/site.ts.
+  site: 'https://pumamz.vercel.app',
 
   i18n: {
     locales: ['es', 'en'],

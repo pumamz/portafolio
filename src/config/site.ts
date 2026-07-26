@@ -21,8 +21,8 @@ export const site = {
     en: 'Full-Stack Developer',
   },
 
-  /** TODO: reemplazar por el dominio real antes del primer deploy publico. */
-  url: 'https://portafolio.vercel.app',
+  /** Debe coincidir con `site` en astro.config.mjs. */
+  url: 'https://pumamz.vercel.app',
 
   email: 'dpumamunoz@gmail.com',
 
