@@ -1,10 +1,14 @@
 # Portafolio personal
 
-Sitio personal bilingue (espanol / ingles) construido con Astro, React y
-Tailwind CSS. Estatico, sin JavaScript en el cliente salvo donde se necesita.
+Sitio personal bilingue (espanol / ingles) construido con Astro y Tailwind CSS.
+Estatico, con 5.4 KB de JavaScript comprimido en total.
 
-> **Estado:** en construccion. La infraestructura esta lista; falta el contenido
-> real y las secciones. Ver [pendientes](./docs/requirements.md#7-pendiente-de-definir).
+**En vivo:** [pumamz.vercel.app](https://pumamz.vercel.app) ·
+[version en ingles](https://pumamz.vercel.app/en/)
+
+> **Estado:** en construccion. Infraestructura, despliegue y contenido de los
+> proyectos listos. Faltan las secciones de proyectos, sobre mi, stack y
+> contacto. Ver [pendientes](./docs/requirements.md#7-pendiente-de-definir).
 
 ## Requisitos
 
