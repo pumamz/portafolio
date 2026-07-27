@@ -47,11 +47,65 @@ export function initTechSphere() {
   let frame = 0;
   let visible = true;
 
+  const RAD = Math.PI / 180;
+
+  /**
+   * Posicion angular de cada logo, leida una sola vez del marcado.
+   *
+   * Se cachea porque calcular la profundidad exige estos dos valores en
+   * cada fotograma, y `getComputedStyle` dentro del bucle de animacion
+   * forzaria un recalculo de estilos dieciocho veces por cuadro.
+   */
+  const items = [...stage.querySelectorAll<HTMLElement>('.sphere-item')].map((el) => {
+    const face = el.querySelector<HTMLElement>('.sphere-face');
+    return {
+      face,
+      theta: parseFloat(el.style.getPropertyValue('--theta')) * RAD,
+      phi: parseFloat(el.style.getPropertyValue('--phi')) * RAD,
+    };
+  });
+
+  /**
+   * Atenua los logos segun su profundidad.
+   *
+   * Sin esto la esfera se lee como una nube plana de iconos: la mente
+   * necesita que lo lejano se vea mas tenue para reconstruir el volumen.
+   * Se calcula la coordenada Z de cada logo tras aplicar las dos
+   * rotaciones globales, y se mapea a opacidad.
+   */
+  function applyDepth() {
+    const gx = rotX * RAD;
+    const gy = rotY * RAD;
+    const cosGx = Math.cos(gx);
+    const sinGx = Math.sin(gx);
+    const cosGy = Math.cos(gy);
+    const sinGy = Math.sin(gy);
+
+    for (const item of items) {
+      if (!item.face) continue;
+
+      // Posicion en la esfera unidad, antes de la rotacion global.
+      const cosPhi = Math.cos(item.phi);
+      const x = cosPhi * Math.sin(item.theta);
+      const y = -Math.sin(item.phi);
+      const z = cosPhi * Math.cos(item.theta);
+
+      // Rotacion global en Y y despues en X; solo interesa la Z final.
+      const zAfterY = z * cosGy - x * sinGy;
+      const zFinal = y * sinGx + zAfterY * cosGx;
+
+      // zFinal va de -1 (fondo) a 1 (frente).
+      const t = (zFinal + 1) / 2;
+      item.face.style.opacity = String(0.22 + t * 0.78);
+    }
+  }
+
   function apply() {
     // Los hijos leen estas dos variables para cancelar la rotacion global
     // y quedar siempre de frente.
     stage!.style.setProperty('--sphere-x', `${rotX}deg`);
     stage!.style.setProperty('--sphere-y', `${rotY}deg`);
+    applyDepth();
   }
 
   function loop() {

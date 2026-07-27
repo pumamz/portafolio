@@ -35,12 +35,18 @@ const placed = items.map((tech, i) => {
 });
 ---
 
-<div data-sphere class="relative select-none" aria-label={label}>
+{
+  /* El ancho se fija AQUI, en el contenedor exterior. Todos los logos son
+    `absolute`, asi que el escenario no tiene contenido en flujo: si el
+    ancho dependiera del contenido, colapsaria a cero y los logos saldrian
+    despedidos sobre el texto de al lado. Ya paso. */
+}
+<div data-sphere class="relative mx-auto w-full max-w-md select-none" aria-label={label}>
   {/* La perspectiva vive en el contenedor; la esfera solo rota. */}
-  <div class="[perspective-origin:center] [perspective:1200px]">
+  <div class="w-full [perspective-origin:center] [perspective:1200px]">
     <div
       data-sphere-stage
-      class="sphere-stage relative mx-auto aspect-square w-full max-w-md cursor-grab touch-none [transform-style:preserve-3d] data-[dragging]:cursor-grabbing"
+      class="sphere-stage relative aspect-square w-full cursor-grab touch-none [transform-style:preserve-3d] data-[dragging]:cursor-grabbing"
       style="--sphere-x: -12deg; --sphere-y: 0deg;"
     >
       {
@@ -60,10 +66,17 @@ const placed = items.map((tech, i) => {
                   : undefined
               }
             >
-              <span class="border-border/60 bg-surface/80 flex size-14 items-center justify-center rounded-2xl border backdrop-blur-sm transition-colors duration-300 hover:border-(--brand-light,--color-accent) dark:hover:border-(--brand-dark,--color-accent)">
+              {/* Sin fallback dentro de var(): un fallback debe ser un
+                  VALOR, no un nombre de variable, y `var(--a,--b)` produce
+                  color invalido. Las dos variables llevan valor por
+                  defecto en el CSS de abajo, asi que siempre resuelven. */}
+              {/* text-text y no text-text-muted: los logos ya se atenuan por
+                  profundidad desde JavaScript, asi que partir de un gris
+                  apagado los dejaba ilegibles en la cara trasera. */}
+              <span class="border-border bg-surface flex size-14 items-center justify-center rounded-2xl border shadow-lg transition-colors duration-300 hover:border-(--brand-light) dark:hover:border-(--brand-dark)">
                 <Icon
                   name={tech.icon}
-                  class="text-text-muted size-6 transition-colors duration-300 group-hover/tech:text-(--brand-light,--color-text) dark:group-hover/tech:text-(--brand-dark,--color-text)"
+                  class="text-text size-6 transition-colors duration-300 group-hover/tech:text-(--brand-light) dark:group-hover/tech:text-(--brand-dark)"
                 />
               </span>
               <span class="sr-only">{tech.name}</span>
@@ -127,6 +140,12 @@ const placed = items.map((tech, i) => {
     transform: rotateX(calc(-1 * var(--phi))) rotateY(calc(-1 * var(--theta)))
       rotateY(calc(-1 * var(--sphere-y))) rotateX(calc(-1 * var(--sphere-x)));
     transform-style: preserve-3d;
+
+    /* Valor por defecto de las variables de marca. Las tecnologias con
+       identidad propia lo sobreescriben con un `style` en linea; las
+       monocromas (Vercel, Railway) se quedan con el color del tema. */
+    --brand-light: var(--text);
+    --brand-dark: var(--text);
   }
 
   /* Sin movimiento continuo, la esfera se aplana a una disposicion legible

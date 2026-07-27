@@ -11,6 +11,7 @@
     "build:fast": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "check:visual": "node scripts/visual-check.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "astro": "astro"
@@ -38,6 +39,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.1",
+    "playwright": "^1.62.0",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-tailwindcss": "^0.8.1",

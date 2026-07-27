@@ -1,5 +1,7 @@
 # build output
 dist/
+# capturas de la revision visual
+.playwright/
 # generated types
 .astro/
 

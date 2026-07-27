@@ -31,7 +31,28 @@ bun run build         # astro check + build (debe pasar antes de commit)
 bun run build:fast    # build sin type-check, para iterar rapido
 bun run check         # solo type-check
 bun run format        # prettier --write
+bun run check:visual  # revision visual con Playwright (ver abajo)
 ```
+
+### Revision visual
+
+`scripts/visual-check.mjs` abre el sitio en un navegador real y ejerce lo que
+no se puede comprobar leyendo el HTML: arrastra la esfera, inclina una
+tarjeta, navega por las anclas, cambia de tema y compara pixeles. Deja
+capturas en `.playwright/`.
+
+```bash
+bun run build && bunx astro preview --port 4330
+$env:BASE_URL='http://localhost:4330'; bun run check:visual
+```
+
+**Ejecutar contra el build de produccion**, no contra `astro dev`: el
+servidor de desarrollo inyecta su barra de herramientas y sale en las
+capturas.
+
+Encontro tres fallos que el HTML no delataba, incluido un canvas WebGL que
+renderizaba sin verse. Al anadir un efecto visual, anadir aqui una
+comprobacion que falle si ese efecto deja de verse.
 
 Para desarrollo en segundo plano: `bunx astro dev --background`, y luego
 `astro dev stop` / `astro dev status` / `astro dev logs`.
@@ -198,6 +219,24 @@ Descubiertas durante el montaje. Evitan repetir depuracion:
   la tarjeta de debajo del cursor, saltaba `pointerleave`, volvia a su sitio,
   entraba `pointerenter`, y vuelta a empezar. Las escuchas van en el
   contenedor de perspectiva (`data-tilt-root`), que nunca se transforma.
+- **Un z-index negativo necesita `isolate` en su seccion.** El canvas de
+  particulas y los resplandores usan `-z-10`. Sin `isolation: isolate` en la
+  seccion, ese z negativo los coloca por detras del fondo opaco del
+  documento: el WebGL seguia renderizando, `data-ready` seguia puesto, y no
+  se veia absolutamente nada. Solo se detecto comparando capturas.
+- **`w-full` colapsa si el padre no tiene ancho propio.** El escenario de la
+  esfera tiene todos sus hijos en `absolute`, asi que no hay contenido que
+  de ancho: `w-full` contra un padre de ancho automatico resolvia a 152 px
+  en vez de 448 y los logos salian despedidos sobre el texto vecino. El
+  ancho se fija en el contenedor exterior.
+- **`var(--a, --b)` es invalido.** El valor de reserva de `var()` debe ser un
+  VALOR, no el nombre de otra variable. `text-(--brand-light,--color-text)`
+  generaba un color invalido. Las variables de marca llevan valor por
+  defecto en CSS y las utilidades se escriben sin reserva.
+- **Playwright se cuelga con elementos animados.** `scrollIntoViewIfNeeded`
+  y demas esperas de "actionability" aguardan a que el elemento este quieto;
+  la esfera gira sin parar y nunca lo esta. Usar `page.evaluate` con
+  `scrollIntoView({ behavior: 'instant' })`.
 - **`will-change: transform` permanente hace desaparecer bordes de 1px.**
   Promueve el elemento a una capa de GPU cacheada a resolucion fija; al
   desplazarla con decimales el borde cae entre pixeles y parpadea. Se activa

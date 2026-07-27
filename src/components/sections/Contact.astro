@@ -14,7 +14,11 @@ const links = [
 ].filter((l) => l.href);
 ---
 
-<section class="relative overflow-hidden">
+{
+  /* isolate por el mismo motivo que en el hero: el resplandor va con
+    z-index negativo y sin contexto propio quedaria tapado por el fondo. */
+}
+<section class="relative isolate overflow-hidden">
   {
     /* Resplandor de vino, espejo del hero: cierra la pagina con el mismo
       gesto con el que se abre. */
