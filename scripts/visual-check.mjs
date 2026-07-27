@@ -278,6 +278,136 @@ async function run() {
 
   await page.screenshot({ path: `${OUT}/03-proyectos.png` });
 
+  /**
+   * La rejilla de proyectos es de 2x2 de verdad.
+   *
+   * `lg:grid-cols-2` puede quedarse en una columna sin dar ningun error si
+   * el contenedor no llega al punto de ruptura, y el HTML tiene el mismo
+   * aspecto en los dos casos. Se comprueba con posiciones reales: dos
+   * coordenadas X distintas y dos Y distintas.
+   *
+   * Se mide sobre `[data-tilt-root]`, que nunca se transforma. La tarjeta
+   * de dentro rota con el puntero y su caja de contorno seria la envolvente
+   * proyectada, no su tamano.
+   */
+  const grid = await page.locator('section:has(#work) [data-tilt-root]').evaluateAll((els) =>
+    els.map((el) => {
+      const r = el.getBoundingClientRect();
+      return { x: Math.round(r.x), y: Math.round(r.y), h: Math.round(r.height) };
+    }),
+  );
+
+  const columns = new Set(grid.map((c) => c.x));
+  const rows = new Set(grid.map((c) => c.y));
+  check(
+    'Los proyectos forman una rejilla 2x2',
+    grid.length === 4 && columns.size === 2 && rows.size === 2,
+    `${grid.length} tarjetas, ${columns.size} columnas, ${rows.size} filas`,
+  );
+
+  // Las tarjetas de una misma fila deben medir lo mismo: es lo que
+  // comprueba que `h-full` y `mt-auto` estan haciendo su trabajo. Sin
+  // ellos, la fila queda dentada y se nota mucho mas que en columna.
+  const rowHeights = [...rows].map((y) => new Set(grid.filter((c) => c.y === y).map((c) => c.h)));
+  check(
+    'Las tarjetas de cada fila miden lo mismo',
+    rowHeights.every((s) => s.size === 1),
+    rowHeights.map((s) => [...s].join('/')).join(' | '),
+  );
+
+  /**
+   * La linea de la trayectoria se dibuja con el scroll.
+   *
+   * `animation-timeline: view()` no da error si el rango esta mal puesto:
+   * simplemente deja la linea en 0 o en 1 todo el rato. Se compara su
+   * altura renderizada en dos posiciones de scroll distintas; el
+   * `scaleY` se refleja en la caja de contorno.
+   */
+  const trailHeight = async (block) => {
+    await page.evaluate((b) => {
+      document.querySelector('#timeline')?.scrollIntoView({ block: b, behavior: 'instant' });
+    }, block);
+    await page.waitForTimeout(500);
+    return page
+      .locator('.timeline-trail')
+      .evaluate((el) => Math.round(el.getBoundingClientRect().height));
+  };
+
+  const trailEntering = await trailHeight('end');
+  const trailCentered = await trailHeight('start');
+  check(
+    'La linea de la trayectoria se dibuja al bajar',
+    trailCentered > trailEntering,
+    `${trailEntering}px -> ${trailCentered}px`,
+  );
+
+  /**
+   * Las tres tarjetas de servicios alinean su lista de entregables.
+   *
+   * Las descripciones tienen largos distintos, asi que sin `mt-auto` cada
+   * lista arrancaria a una altura y las tres columnas se leerian
+   * desalineadas. Es exactamente el tipo de defecto que el HTML no delata.
+   */
+  await page.evaluate(() => {
+    document.querySelector('#services')?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  });
+  await page.waitForTimeout(700);
+
+  const serviceLists = await page
+    .locator('section:has(#services) .bezel-core > ul')
+    .evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().top)));
+  check(
+    'Los entregables de los servicios se alinean',
+    serviceLists.length === 3 && new Set(serviceLists).size === 1,
+    serviceLists.join(', '),
+  );
+
+  /**
+   * El resplandor de servicios se ve.
+   *
+   * Mismo metodo que salvo al campo de particulas: el resplandor usa
+   * z-index negativo, y sin `isolate` en la seccion acabaria detras del
+   * fondo opaco del documento sin dar ningun error. Se compara la seccion
+   * con y sin el.
+   */
+  const glowBox = await page.locator('section:has(#services)').boundingBox();
+  if (glowBox) {
+    const clip = {
+      x: Math.max(0, glowBox.x),
+      y: Math.max(0, glowBox.y),
+      width: Math.min(glowBox.width, 1440),
+      height: Math.min(glowBox.height, 700),
+    };
+    const withGlow = await page.screenshot({ clip });
+    await page.evaluate(() => {
+      const g = document.querySelector('section:has(#services) .parallax-slow');
+      if (g instanceof HTMLElement) g.style.visibility = 'hidden';
+    });
+    await page.waitForTimeout(200);
+    const withoutGlow = await page.screenshot({ clip });
+    await page.evaluate(() => {
+      const g = document.querySelector('section:has(#services) .parallax-slow');
+      if (g instanceof HTMLElement) g.style.visibility = '';
+    });
+    check(
+      'El resplandor de servicios se ve de verdad',
+      !withGlow.equals(withoutGlow),
+      `diferencia de ${Math.abs(withGlow.length - withoutGlow.length)} bytes`,
+    );
+  }
+
+  await page.evaluate(() => {
+    document.querySelector('#timeline')?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  });
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `${OUT}/08-trayectoria.png` });
+
+  await page.evaluate(() => {
+    document.querySelector('#services')?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  });
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `${OUT}/09-servicios.png` });
+
   /* --- Contadores --- */
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(300);
@@ -304,7 +434,7 @@ async function run() {
     .first()
     .evaluate((el) => el.getBoundingClientRect().bottom);
 
-  for (const id of ['work', 'about', 'stack', 'contact']) {
+  for (const id of ['work', 'about', 'stack', 'services', 'contact']) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(200);
     await page.locator(`header nav a[href$="#${id}"]`).click();

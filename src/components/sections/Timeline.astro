@@ -1,0 +1,63 @@
+---
+import { Icon } from 'astro-icon/components';
+import { getLangFromUrl, useTranslations } from '../../i18n/utils';
+import { timeline, milestoneIcon } from '../../config/timeline';
+import SectionHeading from '../SectionHeading.astro';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section class="mx-auto max-w-6xl px-6 py-28 sm:py-36">
+  <SectionHeading
+    id="timeline"
+    index="03"
+    eyebrow={t('timeline.eyebrow')}
+    title={t('timeline.title')}
+    intro={t('timeline.intro')}
+  />
+
+  {
+    /* `ol` y no `ul`: el orden es informacion. Un lector de pantalla
+      anuncia "1 de 5" y la progresion se transmite igual sin ver la
+      linea. */
+  }
+  <ol class="relative mt-16 ml-1.5 sm:ml-2">
+    {
+      /* Dos lineas superpuestas: la gris esta siempre y sostiene la
+        maquetacion; la de acento se dibuja con el scroll por encima. Si
+        el navegador no soporta `animation-timeline`, la de acento se
+        queda dibujada entera, que es un estado correcto, no un hueco. */
+    }
+    <div aria-hidden="true" class="bg-border/70 absolute top-2 bottom-2 left-0 w-px"></div>
+    <div
+      aria-hidden="true"
+      class="bg-accent timeline-trail absolute top-2 bottom-2 left-0 w-px origin-top"
+    >
+    </div>
+
+    {
+      timeline.map((milestone) => (
+        <li class="reveal-on-scroll relative pb-12 pl-10 last:pb-0 sm:pl-14">
+          {/* El punto se centra sobre la linea con -translate-x-1/2. El
+              anillo del color del fondo lo separa de la linea, para que
+              se lea como una cuenta ensartada y no como un engrosamiento. */}
+          <span
+            aria-hidden="true"
+            class="border-border bg-bg ring-bg absolute top-1 left-0 grid size-7 -translate-x-1/2 place-items-center rounded-full border ring-4"
+          >
+            <Icon name={milestoneIcon[milestone.kind]} class="text-accent size-3.5" />
+          </span>
+
+          <p class="text-text-faint font-mono text-xs tracking-[0.2em] tabular-nums">
+            {milestone.period}
+          </p>
+          <h3 class="text-text mt-2 text-lg font-medium">{milestone.title[lang]}</h3>
+          <p class="text-text-muted mt-2 max-w-prose text-base text-pretty">
+            {milestone.detail[lang]}
+          </p>
+        </li>
+      ))
+    }
+  </ol>
+</section>

@@ -1,5 +1,5 @@
 /**
- * Interacciones de puntero: inclinacion 3D de tarjetas y botones magneticos.
+ * Interacciones de puntero: inclinacion 3D de tarjetas.
  *
  * Reglas que sigue todo este fichero:
  *
@@ -10,11 +10,16 @@
  *    todo sigue funcionando: son adornos sobre elementos que ya funcionan.
  * 3. **Escrituras al DOM solo dentro de requestAnimationFrame.** Los
  *    eventos de puntero se disparan mas rapido que los fotogramas.
+ *
+ * RETIRADO - botones magneticos. Los botones se desplazaban hacia el cursor
+ * dentro de un radio. Se quito a peticion del autor. Nota para el futuro:
+ * un boton que huye del sitio donde el visitante apunta convierte un clic
+ * seguro en uno que hay que perseguir, y el desplazamiento obligaba a
+ * redondear a enteros y a activar `will-change` a mano para que no
+ * desaparecieran los bordes de 1px. Mucho coste para un guino.
  */
 
 const MAX_TILT_DEG = 5;
-const MAGNET_STRENGTH = 0.22;
-const MAGNET_RADIUS = 70;
 
 type Cleanup = () => void;
 
@@ -101,78 +106,10 @@ function initTilt() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Botones magneticos                                                  */
-/* ------------------------------------------------------------------ */
-
-/**
- * BUG CORREGIDO - bordes que desaparecen.
- *
- * `will-change: transform` permanente promueve el boton a su propia capa
- * de GPU. El navegador cachea esa capa a una resolucion fija, y al
- * desplazarla con valores decimales el borde de 1px cae entre pixeles y
- * parpadea o desaparece.
- *
- * Dos correcciones: el desplazamiento se redondea a enteros, y
- * `will-change` solo se activa mientras el boton se mueve de verdad.
- */
-function initMagnetic() {
-  const magnets = document.querySelectorAll<HTMLElement>('[data-magnetic]');
-  if (magnets.length === 0) return;
-
-  magnets.forEach((el) => {
-    let frame = 0;
-
-    const onEnter = () => {
-      el.style.willChange = 'transform';
-    };
-
-    const onMove = (event: PointerEvent) => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const rect = el.getBoundingClientRect();
-        const dx = event.clientX - (rect.left + rect.width / 2);
-        const dy = event.clientY - (rect.top + rect.height / 2);
-        const distance = Math.hypot(dx, dy);
-
-        // La atraccion se desvanece con la distancia: cerca del borde del
-        // radio el desplazamiento es casi nulo y no da tirones al entrar.
-        const falloff = Math.max(0, 1 - distance / (MAGNET_RADIUS + rect.width / 2));
-        const x = Math.round(dx * MAGNET_STRENGTH * falloff);
-        const y = Math.round(dy * MAGNET_STRENGTH * falloff);
-
-        el.style.transform = x === 0 && y === 0 ? '' : `translate(${x}px, ${y}px)`;
-      });
-    };
-
-    const onLeave = () => {
-      cancelAnimationFrame(frame);
-      el.style.transform = '';
-      // Liberar la capa al terminar: mantenerla viva consume memoria de
-      // video y es justo lo que provoca el artefacto del borde.
-      el.style.willChange = '';
-    };
-
-    el.addEventListener('pointerenter', onEnter);
-    el.addEventListener('pointermove', onMove);
-    el.addEventListener('pointerleave', onLeave);
-
-    cleanups.push(() => {
-      cancelAnimationFrame(frame);
-      el.removeEventListener('pointerenter', onEnter);
-      el.removeEventListener('pointermove', onMove);
-      el.removeEventListener('pointerleave', onLeave);
-      el.style.transform = '';
-      el.style.willChange = '';
-    });
-  });
-}
-
-/* ------------------------------------------------------------------ */
 
 export function initPointerEffects() {
   if (!canHover() || prefersReducedMotion()) return;
   initTilt();
-  initMagnetic();
 }
 
 export function destroyPointerEffects() {

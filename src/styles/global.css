@@ -330,11 +330,48 @@
 /* Nota: `@utility` no admite anidamiento, asi que las condiciones van
    DENTRO de cada definicion y no envolviendolas. */
 
+/* ------------------------------------------------------------------
+   NUNCA usar la forma abreviada `animation:` en este bloque.
+
+   Se escribia asi, que es lo natural:
+
+     animation: reveal-up linear both;
+     animation-timeline: view();
+
+   Lightning CSS, el minificador de Tailwind 4, junta las dos en la
+   abreviada y emite `animation: linear both reveal-up view()`. Esa forma
+   pertenece a un borrador antiguo: la abreviada NO admite un valor de
+   linea temporal. Chromium la rechaza entera, asi que
+   `animation-name` queda en `none` y la animacion no existe. Comprobado:
+
+     CSS.supports('animation', 'linear both foo view()')  ->  false
+
+   Y no da ningun error. `animation-range` sobrevive porque es una
+   propiedad aparte, asi que el elemento queda con un rango puesto y sin
+   animacion que lo use: la unica huella del fallo.
+
+   Tampoco se ve nada raro en pantalla, y eso es lo peor. Sin `both` que
+   fije el fotograma inicial, el elemento se pinta en su estado final: se
+   ve bien, quieto. El sitio llevaba TODAS las animaciones de scroll
+   muertas (entradas, parallax y barra de progreso) sin una sola pista
+   visual. Lo delato una comprobacion que midio la altura renderizada de
+   la linea de la trayectoria en dos posiciones de scroll y obtuvo el
+   mismo numero.
+
+   La solucion es usar solo propiedades sueltas y dejar fuera al menos
+   una de las que componen la abreviada (aqui, `animation-delay` e
+   `animation-iteration-count`). Sin el juego completo, el minificador no
+   puede plegarlas y las deja como estan.
+   ------------------------------------------------------------------ */
+
 /* Entrada de secciones y tarjetas al aparecer. */
 @utility reveal-on-scroll {
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: view()) {
-      animation: reveal-up linear both;
+      animation-name: reveal-up;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
       animation-timeline: view();
       /* Empieza cuando asoma por abajo y termina al 40% de recorrido: el
          elemento queda asentado bastante antes de estar centrado. */
@@ -350,7 +387,10 @@
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: view()) {
       & > * {
-        animation: reveal-up linear both;
+        animation-name: reveal-up;
+        animation-duration: auto;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
         animation-timeline: view();
         animation-range: entry 0% cover 35%;
       }
@@ -363,7 +403,10 @@
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: view()) {
       --parallax-distance: 4rem;
-      animation: parallax-drift linear both;
+      animation-name: parallax-drift;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
       animation-timeline: view();
       animation-range: cover 0% cover 100%;
     }
@@ -374,9 +417,36 @@
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: view()) {
       --parallax-distance: 10rem;
-      animation: parallax-drift linear both;
+      animation-name: parallax-drift;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
       animation-timeline: view();
       animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
+/* Linea de la trayectoria. Se dibuja de arriba abajo conforme la seccion
+   cruza el viewport, de modo que el ojo avanza por los hitos en el mismo
+   orden en que se leen. `transform-origin: top` va FUERA del @supports: si
+   se quedara dentro, un navegador sin soporte tendria la linea con origen
+   al centro y cualquier transform futuro la partiria por la mitad. */
+@utility timeline-trail {
+  transform-origin: top;
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation-name: scale-y;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      /* El sujeto es la propia linea, que mide mas que la pantalla, asi
+         que se cubre el recorrido entero: de asomar por abajo a salir
+         por arriba. Con un rango corto la linea terminaba de dibujarse
+         antes de que se viera el segundo hito. */
+      animation-range: entry 0% exit 0%;
     }
   }
 }
@@ -385,7 +455,10 @@
 @utility scroll-progress {
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: scroll()) {
-      animation: scale-x linear both;
+      animation-name: scale-x;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
       animation-timeline: scroll(root block);
     }
   }
@@ -421,6 +494,15 @@
   }
   to {
     transform: scaleX(1);
+  }
+}
+
+@keyframes scale-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
   }
 }
 

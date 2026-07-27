@@ -25,6 +25,7 @@ export const ui = {
     'nav.work': 'Proyectos',
     'nav.about': 'Sobre mi',
     'nav.stack': 'Stack',
+    'nav.services': 'Servicios',
     'nav.contact': 'Contacto',
     'nav.skipToContent': 'Saltar al contenido principal',
     'nav.toggleTheme': 'Cambiar tema',
@@ -65,6 +66,19 @@ export const ui = {
     'stack.sphereLabel': 'Esfera interactiva de tecnologias',
     'stack.sphereHint': 'Arrastra para girar',
 
+    'timeline.title': 'Como llegue hasta aqui',
+    'timeline.eyebrow': 'Trayectoria',
+    'timeline.intro':
+      'Los proyectos sueltos no cuentan una progresion. En orden si: primer sistema en produccion, primera integracion con un organismo publico, primer equipo a cargo.',
+
+    'services.title': 'En que puedo ayudarte',
+    'services.eyebrow': 'Servicios',
+    'services.intro':
+      'Trabajo por encargo en proyectos donde ya he construido algo parecido. Si lo que necesitas no esta en esta lista, te lo digo antes de empezar.',
+    'services.cta': 'Cuentame tu proyecto',
+    'services.note':
+      'Respondo en menos de 24 horas. La primera conversacion sirve para ver si encaja, y no compromete a nada.',
+
     'stats.projects': 'Sistemas construidos',
     'stats.led': 'Proyectos liderados',
     'stats.since': 'Programando desde',
@@ -90,6 +104,7 @@ export const ui = {
     'nav.work': 'Work',
     'nav.about': 'About',
     'nav.stack': 'Stack',
+    'nav.services': 'Services',
     'nav.contact': 'Contact',
     'nav.skipToContent': 'Skip to main content',
     'nav.toggleTheme': 'Toggle theme',
@@ -128,6 +143,19 @@ export const ui = {
     'stack.intro': 'Only technologies I have used in the projects above. Hover to see where.',
     'stack.sphereLabel': 'Interactive technology sphere',
     'stack.sphereHint': 'Drag to rotate',
+
+    'timeline.title': 'How I got here',
+    'timeline.eyebrow': 'Trajectory',
+    'timeline.intro':
+      'Projects on their own do not show progression. In order they do: first system in production, first integration with a public authority, first team to lead.',
+
+    'services.title': 'How I can help',
+    'services.eyebrow': 'Services',
+    'services.intro':
+      'I take freelance work in areas where I have already built something similar. If what you need is not on this list, I will tell you before we start.',
+    'services.cta': 'Tell me about your project',
+    'services.note':
+      'I reply within 24 hours. The first conversation is to find out whether it is a fit, and commits you to nothing.',
 
     'stats.projects': 'Systems built',
     'stats.led': 'Projects led',

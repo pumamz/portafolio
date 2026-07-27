@@ -4,7 +4,9 @@ import Hero from '../components/sections/Hero.astro';
 import Stats from '../components/sections/Stats.astro';
 import Work from '../components/sections/Work.astro';
 import About from '../components/sections/About.astro';
+import Timeline from '../components/sections/Timeline.astro';
 import Stack from '../components/sections/Stack.astro';
+import Services from '../components/sections/Services.astro';
 import Contact from '../components/sections/Contact.astro';
 import { site } from '../config/site';
 import { path } from '../i18n/utils';
@@ -17,6 +19,8 @@ const lang = 'es' as const;
   <Stats />
   <Work />
   <About />
+  <Timeline />
   <Stack />
+  <Services />
   <Contact />
 </BaseLayout>

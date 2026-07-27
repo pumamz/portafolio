@@ -50,9 +50,16 @@ $env:BASE_URL='http://localhost:4330'; bun run check:visual
 servidor de desarrollo inyecta su barra de herramientas y sale en las
 capturas.
 
-Encontro tres fallos que el HTML no delataba, incluido un canvas WebGL que
-renderizaba sin verse. Al anadir un efecto visual, anadir aqui una
-comprobacion que falle si ese efecto deja de verse.
+Encontro cuatro fallos que el HTML no delataba: un canvas WebGL que
+renderizaba sin verse, una esfera colapsada a un tercio de su tamano, un
+color de marca que nunca se aplicaba, y **todas las animaciones de scroll
+del sitio muertas** por una abreviada de CSS que el minificador reescribia
+mal (ver trampas).
+
+Al anadir un efecto visual, anadir aqui una comprobacion que falle si ese
+efecto deja de verse. La comprobacion tiene que medir el **resultado
+renderizado**, no la presencia de la clase: la clase estaba puesta en los
+cuatro casos.
 
 Para desarrollo en segundo plano: `bunx astro dev --background`, y luego
 `astro dev stop` / `astro dev status` / `astro dev logs`.
@@ -138,6 +145,9 @@ completa con un solo comando.
 ```
 src/
   config/site.ts        Datos personales y enlaces. Fuente unica de verdad.
+  config/stack.ts       Tecnologias, iconos y colores de marca.
+  config/services.ts    Servicios ofrecidos, ES y EN.
+  config/timeline.ts    Hitos de la trayectoria, ES y EN.
   content.config.ts     Esquemas Zod del contenido.
   content/projects/     Proyectos en Markdown, es/ y en/.
   i18n/
@@ -150,7 +160,8 @@ src/
     Footer.astro
     ThemeToggle.astro   Claro/oscuro sin JavaScript de framework.
     LanguageSwitcher.astro
-    sections/           Hero y demas secciones de la portada.
+    sections/           Hero, Stats, Work, About, Timeline, Stack,
+                        Services y Contact, en ese orden en la portada.
   pages/
     index.astro         -> /      (espanol, idioma por defecto)
     en/index.astro      -> /en/   (ingles)
@@ -168,9 +179,13 @@ importa de verdad, que es lo que bloquea el primer pintado.
 
 | Metrica            | Presupuesto | Actual     |
 | ------------------ | ----------- | ---------- |
-| JS inicial (gzip)  | < 30 KB     | **7.9 KB** |
+| JS inicial (gzip)  | < 30 KB     | **6.7 KB** |
 | JS diferido (gzip) | < 150 KB    | **128 KB** |
-| CSS (gzip)         | < 15 KB     | **9.3 KB** |
+| CSS (gzip)         | < 15 KB     | **9.5 KB** |
+
+Las dos secciones nuevas (Trayectoria y Servicios) no anaden ni un byte de
+JavaScript: la linea que se dibuja al bajar es `animation-timeline: view()`,
+no un IntersectionObserver.
 
 **Regla:** nada que bloquee el primer pintado. Three.js entra por `import()`
 dentro de `requestIdleCallback` y no debe aparecer nunca en el HTML inicial
@@ -237,6 +252,37 @@ Descubiertas durante el montaje. Evitan repetir depuracion:
   y demas esperas de "actionability" aguardan a que el elemento este quieto;
   la esfera gira sin parar y nunca lo esta. Usar `page.evaluate` con
   `scrollIntoView({ behavior: 'instant' })`.
+- **Nunca usar la forma abreviada `animation:` junto a `animation-timeline`.**
+  Lightning CSS (el minificador de Tailwind 4) pliega estas dos lineas
+
+  ```css
+  animation: reveal-up linear both;
+  animation-timeline: view();
+  ```
+
+  en `animation: linear both reveal-up view()`, que pertenece a un borrador
+  antiguo. La abreviada **no** admite linea temporal, asi que Chromium
+  rechaza la declaracion entera y `animation-name` queda en `none`.
+  Comprobado: `CSS.supports('animation','linear both foo view()')` da
+  `false`.
+
+  El sitio llevo **todas** las animaciones de scroll muertas sin ninguna
+  senal: sin `both` que fije el primer fotograma, el elemento se pinta en
+  su estado final y se ve correcto, solo que quieto. La unica huella era
+  un `animation-range` puesto sobre un elemento con `animation-name: none`.
+
+  Se escriben solo propiedades sueltas, dejando fuera al menos una de las
+  que componen la abreviada (`animation-delay`, `animation-iteration-count`).
+  Sin el juego completo el minificador no puede plegarlas.
+
+  Para comprobarlo tras tocar `global.css`:
+
+  ```powershell
+  Select-String dist\_astro\*.css -Pattern 'animation:[^;}]*view\(\)'
+  ```
+
+  No debe salir nada.
+
 - **`will-change: transform` permanente hace desaparecer bordes de 1px.**
   Promueve el elemento a una capa de GPU cacheada a resolucion fija; al
   desplazarla con decimales el borde cae entre pixeles y parpadea. Se activa

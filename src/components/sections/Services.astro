@@ -1,0 +1,94 @@
+---
+import { Icon } from 'astro-icon/components';
+import { getLangFromUrl, useTranslations, path } from '../../i18n/utils';
+import { services } from '../../config/services';
+import SectionHeading from '../SectionHeading.astro';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+{
+  /* isolate, igual que el hero y el contacto: el resplandor va con z-index
+    negativo y sin contexto de apilamiento propio acabaria detras del fondo
+    opaco del documento. Ya paso una vez con el canvas de particulas. */
+}
+<section class="relative isolate overflow-hidden">
+  <div
+    aria-hidden="true"
+    class="bg-accent/10 parallax-slow pointer-events-none absolute -top-32 -right-52 -z-10 size-[32rem] rounded-full blur-[120px]"
+  >
+  </div>
+
+  <div class="mx-auto max-w-6xl px-6 py-28 sm:py-36">
+    <SectionHeading
+      id="services"
+      index="05"
+      eyebrow={t('services.eyebrow')}
+      title={t('services.title')}
+      intro={t('services.intro')}
+    />
+
+    <div class="reveal-stagger mt-16 grid gap-5 md:grid-cols-3">
+      {
+        services.map((service) => (
+          <div class="bezel-shell group h-full">
+            <div class="bezel-core flex h-full flex-col p-7 sm:p-8">
+              <span
+                aria-hidden="true"
+                class="border-border bg-bg-subtle text-accent group-hover:border-accent grid size-11 shrink-0 place-items-center rounded-2xl border transition-colors duration-500"
+              >
+                <Icon name={service.icon} class="size-5" />
+              </span>
+
+              <h3 class="text-text mt-6 text-lg font-medium text-pretty">{service.title[lang]}</h3>
+              <p class="text-text-muted mt-3 text-sm leading-relaxed text-pretty">
+                {service.description[lang]}
+              </p>
+
+              {/* mt-auto: los tres textos tienen largos distintos y sin
+                  esto las listas de entregables arrancarian a alturas
+                  distintas en cada columna. */}
+              <ul class="border-border/60 mt-auto space-y-2.5 border-t pt-6">
+                {service.points[lang].map((point) => (
+                  <li class="text-text-muted flex gap-2.5 text-sm leading-relaxed">
+                    <Icon
+                      name="lucide:check"
+                      class="text-accent mt-1 size-3.5 shrink-0"
+                      aria-hidden="true"
+                    />
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    {
+      /* Una sola llamada a la accion al pie de la seccion, no una por
+        tarjeta: tres botones identicos compiten entre si y ninguno gana. */
+    }
+    <div class="mt-12 flex flex-wrap items-center gap-x-6 gap-y-4">
+      <a
+        href={`${path(lang)}#contact`}
+        class="group bg-accent text-on-accent hover:bg-accent-hover inline-flex items-center gap-3 rounded-full py-2 pr-2 pl-7 text-base font-medium transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+      >
+        {t('services.cta')}
+        <span
+          aria-hidden="true"
+          class="bg-on-accent/15 grid size-9 place-items-center rounded-full"
+        >
+          <Icon
+            name="lucide:arrow-right"
+            class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0"
+          />
+        </span>
+      </a>
+
+      <p class="text-text-faint max-w-sm text-sm text-pretty">{t('services.note')}</p>
+    </div>
+  </div>
+</section>

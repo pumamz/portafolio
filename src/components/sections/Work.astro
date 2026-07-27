@@ -1,6 +1,7 @@
 ---
 import { getLangFromUrl, useTranslations } from '../../i18n/utils';
-import { getProjects } from '../../lib/projects';
+import { Icon } from 'astro-icon/components';
+import { getProjects, workIndexUrl } from '../../lib/projects';
 import ProjectCard from '../ProjectCard.astro';
 import SectionHeading from '../SectionHeading.astro';
 
@@ -19,11 +20,31 @@ const projects = await getProjects(lang);
   />
 
   {
-    /* Una columna a proposito, no una rejilla. Con cuatro proyectos, unas
-      tarjetas anchas dejan sitio para contar el problema y el impacto;
-      una rejilla obligaria a recortarlo todo a un titulo y un icono. */
+    /* Rejilla 2x2 en la portada. Cuatro proyectos en columna ocupaban casi
+      tres pantallas de desplazamiento y el visitante llegaba cansado a la
+      cuarta tarjeta. En dos columnas se ven los cuatro de una vez, que es
+      lo que hace que se lean como un cuerpo de trabajo y no como una lista.
+      El problema y la solucion completos siguen a un clic, en el caso de
+      estudio; aqui solo va el impacto. */
   }
-  <div class="reveal-stagger mt-16 flex flex-col gap-6">
-    {projects.map((project, i) => <ProjectCard project={project} index={i + 1} />)}
+  <div class="reveal-stagger mt-16 grid gap-6 lg:grid-cols-2">
+    {
+      projects.map((project, i) => (
+        <ProjectCard project={project} index={i + 1} variant="compact" />
+      ))
+    }
+  </div>
+
+  <div class="mt-12 flex justify-center">
+    <a
+      href={workIndexUrl(lang)}
+      class="group border-border-strong hover:border-accent hover:text-accent inline-flex items-center gap-2.5 rounded-full border px-6 py-3 text-sm font-medium transition-colors duration-300"
+    >
+      {t('work.viewAll')}
+      <Icon
+        name="lucide:arrow-right"
+        class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0"
+      />
+    </a>
   </div>
 </section>

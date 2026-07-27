@@ -14,10 +14,20 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const home = path(lang);
 
+/**
+ * La navegacion es una seleccion, no un indice.
+ *
+ * La portada tiene seis secciones numeradas, pero `#timeline` se queda
+ * fuera a proposito: cae justo despues de "Sobre mi" y se encuentra
+ * desplazandose. Meter las seis en una pastilla flotante la obliga a
+ * estrecharse hasta que ningun destino se lee bien, y el enlace que de
+ * verdad paga las facturas (`#services`) pierde peso entre los demas.
+ */
 const nav = [
   { href: `${home}#work`, label: t('nav.work') },
   { href: `${home}#about`, label: t('nav.about') },
   { href: `${home}#stack`, label: t('nav.stack') },
+  { href: `${home}#services`, label: t('nav.services') },
   { href: `${home}#contact`, label: t('nav.contact') },
 ];
 ---

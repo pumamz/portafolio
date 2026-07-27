@@ -16,14 +16,30 @@ interface Props {
    * de h1 a h3 rompe la navegacion por encabezados de los lectores.
    */
   headingLevel?: 2 | 3;
+  /**
+   * `full` para una tarjeta ancha en columna: cabe el problema y el
+   * impacto uno junto al otro, con todas las tecnologias.
+   * `compact` para la rejilla 2x2 de la portada: la mitad de ancho no da
+   * para dos columnas de texto, asi que se queda solo el impacto, que es
+   * lo unico que un reclutador lee de verdad en una vista de resumen.
+   */
+  variant?: 'full' | 'compact';
 }
 
-const { project, index, headingLevel = 3 } = Astro.props;
+const { project, index, headingLevel = 3, variant = 'full' } = Astro.props;
 const d = project.data;
 const t = useTranslations(d.lang as Lang);
 const href = projectUrl(project);
 const num = String(index).padStart(2, '0');
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const compact = variant === 'compact';
+
+// En la version compacta se recortan las tecnologias y se indica cuantas
+// faltan. Truncar en silencio haria pensar que el proyecto usa menos de
+// las que usa; el "+2" invita a abrir el caso completo.
+const VISIBLE_TECH = 4;
+const shownStack = compact ? d.stack.slice(0, VISIBLE_TECH) : d.stack;
+const hiddenStack = compact ? d.stack.length - shownStack.length : 0;
 ---
 
 {
@@ -37,14 +53,29 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
     elemento transformado, la rotacion lo apartaria del cursor cerca de los
     bordes y se produciria un bucle de entrada y salida. */
 }
-<div class="perspective-container" data-tilt-root>
+{
+  /* h-full en toda la cadena cuando va en rejilla: sin el, cada tarjeta
+    mide lo que mide su texto y la fila queda dentada. */
+}
+<div class:list={['perspective-container', compact && 'h-full']} data-tilt-root>
   {
     /* Doble bisel: marco exterior con reborde, nucleo dentro. La tarjeta
       deja de ser un rectangulo sobre el fondo y pasa a parecer una pieza
       encajada en una bandeja. */
   }
-  <div class="bezel-shell group hover:bg-accent/[0.06] transition-colors duration-700">
-    <article data-tilt class="bezel-core tilt-card relative isolate overflow-hidden p-8 sm:p-10">
+  <div
+    class:list={[
+      'bezel-shell group hover:bg-accent/[0.06] transition-colors duration-700',
+      compact && 'h-full',
+    ]}
+  >
+    <article
+      data-tilt
+      class:list={[
+        'bezel-core tilt-card relative isolate overflow-hidden',
+        compact ? 'flex h-full flex-col p-7 sm:p-8' : 'p-8 sm:p-10',
+      ]}
+    >
       {/* Brillo radial que sigue al puntero. */}
       <div
         aria-hidden="true"
@@ -62,7 +93,7 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
             </span>
           </div>
 
-          <Heading class="mt-5 text-2xl">
+          <Heading class:list={['mt-5', compact ? 'text-xl' : 'text-2xl']}>
             {
               /* El enlace envuelve solo el titulo, pero ::after lo extiende
                 a toda la tarjeta. Asi el area clicable es grande y el
@@ -82,7 +113,10 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
         }
         <span
           aria-hidden="true"
-          class="border-border bg-bg-subtle text-text-muted group-hover:border-accent group-hover:bg-accent group-hover:text-on-accent grid size-11 shrink-0 place-items-center rounded-full border transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+          class:list={[
+            'border-border bg-bg-subtle text-text-muted group-hover:border-accent group-hover:bg-accent group-hover:text-on-accent grid shrink-0 place-items-center rounded-full border transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
+            compact ? 'size-9' : 'size-11',
+          ]}
         >
           <Icon
             name="lucide:arrow-up-right"
@@ -91,16 +125,23 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
         </span>
       </div>
 
-      <dl class="border-border/60 mt-8 grid gap-6 border-t pt-8 sm:grid-cols-2">
-        <div>
-          <dt
-            class="text-text-faint flex items-center gap-2 font-mono text-[0.625rem] tracking-[0.2em] uppercase"
-          >
-            <Icon name="lucide:target" class="size-3" />
-            {t('work.problem')}
-          </dt>
-          <dd class="text-text-muted mt-3 text-sm leading-relaxed">{d.problem}</dd>
-        </div>
+      <dl
+        class:list={[
+          'border-border/60 mt-8 grid gap-6 border-t pt-8',
+          !compact && 'sm:grid-cols-2',
+        ]}
+      >
+        {
+          !compact && (
+            <div>
+              <dt class="text-text-faint flex items-center gap-2 font-mono text-[0.625rem] tracking-[0.2em] uppercase">
+                <Icon name="lucide:target" class="size-3" />
+                {t('work.problem')}
+              </dt>
+              <dd class="text-text-muted mt-3 text-sm leading-relaxed">{d.problem}</dd>
+            </div>
+          )
+        }
         <div>
           <dt
             class="text-text-faint flex items-center gap-2 font-mono text-[0.625rem] tracking-[0.2em] uppercase"
@@ -112,14 +153,26 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
         </div>
       </dl>
 
-      <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+      {
+        /* mt-auto empuja el pie al fondo de la tarjeta. En la rejilla las
+          descripciones tienen distinto largo, y sin esto las hileras de
+          tecnologias quedarian a alturas distintas en cada columna. */
+      }
+      <div
+        class:list={['mt-8 flex flex-wrap items-center gap-x-6 gap-y-3', compact && 'mt-auto pt-8']}
+      >
         <ul class="flex flex-wrap gap-2" aria-label={t('work.stack')}>
           {
-            d.stack.map((tech) => (
+            shownStack.map((tech) => (
               <li class="border-border/70 text-text-muted rounded-full border px-3 py-1 font-mono text-[0.6875rem]">
                 {tech}
               </li>
             ))
+          }
+          {
+            hiddenStack > 0 && (
+              <li class="text-text-faint px-1 py-1 font-mono text-[0.6875rem]">+{hiddenStack}</li>
+            )
           }
         </ul>
 
