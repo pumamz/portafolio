@@ -214,6 +214,21 @@
   box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--text) 8%, transparent);
 }
 
+/* Contorno para elementos que se desplazan por GPU.
+   Un `border` de 1px sobre una capa promovida con will-change desaparece o
+   parpadea al desplazarse con valores decimales: la capa se cachea a
+   resolucion fija y el borde cae entre pixeles. `box-shadow` interior se
+   pinta dentro de la caja y no sufre ese recorte. */
+@utility ring-outline {
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+  transition: box-shadow var(--animate-duration-base) var(--ease-fluid);
+}
+
+@utility ring-outline-subtle {
+  box-shadow: inset 0 0 0 1px var(--border);
+  transition: box-shadow var(--animate-duration-base) var(--ease-fluid);
+}
+
 /* Etiqueta de seccion. Precede a los titulos grandes y da un punto de
    entrada a la lectura antes del salto de escala tipografico. */
 @utility eyebrow {
@@ -422,10 +437,11 @@
 
 @utility tilt-card {
   transform-style: preserve-3d;
-  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
-    translateZ(var(--tilt-z, 0px));
-  transition: transform 400ms var(--ease-out-quint);
-  will-change: transform;
+  /* Sin translateZ: acercar la tarjeta al observador la agranda, y ese
+     crecimiento era parte del temblor en los bordes. La sensacion de
+     profundidad ya la da la rotacion. */
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform 500ms var(--ease-fluid);
 }
 
 /* Mientras el puntero esta encima se sigue al cursor en tiempo real, sin

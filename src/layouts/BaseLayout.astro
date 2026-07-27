@@ -9,7 +9,7 @@ import { getLangFromUrl, useTranslations, localeCodes, otherLang, path } from '.
 import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import CustomCursor from '../components/CustomCursor.astro';
+import PointerEffects from '../components/PointerEffects.astro';
 
 interface Props {
   title: string;
@@ -120,7 +120,7 @@ const jsonLd = {
     >
     </div>
 
-    <CustomCursor />
+    <PointerEffects />
 
     <Header altPath={altPath} />
 

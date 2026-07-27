@@ -51,6 +51,11 @@ antes de saltarsela.
    Nunca `text-neutral-500` ni `#1a1a1a`. Motivo: el tema oscuro reasigna solo
    la capa semantica; saltarsela rompe el modo oscuro (ADR-0002).
 
+   **Unica excepcion:** los colores de marca de terceros en
+   `src/config/stack.ts`. El azul de React es #61DAFB y ningun token puede
+   expresarlo. Estan acotados a ese fichero, solo se usan en hover, y cada
+   marca lleva dos valores porque el cyan de React sobre blanco es ilegible.
+
 3. **Antes de crear una isla, comprobar si basta CSS.**
    Por defecto, `.astro`. React solo si hay estado real que CSS no pueda
    expresar. Ver la trampa documentada mas abajo: cuesta 187 KB equivocarse.
@@ -188,6 +193,17 @@ Descubiertas durante el montaje. Evitan repetir depuracion:
   atado a un boton muere con el.
 - **El script de tema del `<head>` no se re-ejecuta al navegar** con view
   transitions. Hay que reaplicarlo en `astro:after-swap` o el tema se pierde.
+- **Nunca escuchar el puntero en un elemento que se transforma.** La
+  inclinacion 3D de las tarjetas temblaba en los bordes: la rotacion apartaba
+  la tarjeta de debajo del cursor, saltaba `pointerleave`, volvia a su sitio,
+  entraba `pointerenter`, y vuelta a empezar. Las escuchas van en el
+  contenedor de perspectiva (`data-tilt-root`), que nunca se transforma.
+- **`will-change: transform` permanente hace desaparecer bordes de 1px.**
+  Promueve el elemento a una capa de GPU cacheada a resolucion fija; al
+  desplazarla con decimales el borde cae entre pixeles y parpadea. Se activa
+  desde JavaScript solo mientras dura el movimiento, el desplazamiento se
+  redondea a enteros, y los contornos usan `ring-outline` (box-shadow
+  interior) en lugar de `border`.
 
 ## Documentacion de Astro
 

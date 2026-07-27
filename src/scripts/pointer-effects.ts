@@ -1,6 +1,5 @@
 /**
- * Interacciones de puntero: inclinacion 3D, cursor propio y botones
- * magneticos.
+ * Interacciones de puntero: inclinacion 3D de tarjetas y botones magneticos.
  *
  * Reglas que sigue todo este fichero:
  *
@@ -10,13 +9,12 @@
  * 2. **Nada de esto es necesario para usar el sitio.** Si no se ejecuta,
  *    todo sigue funcionando: son adornos sobre elementos que ya funcionan.
  * 3. **Escrituras al DOM solo dentro de requestAnimationFrame.** Los
- *    eventos de puntero se disparan mas rapido que los fotogramas; escribir
- *    en cada evento provoca recalculos de estilo innecesarios.
+ *    eventos de puntero se disparan mas rapido que los fotogramas.
  */
 
-const MAX_TILT_DEG = 7;
-const MAGNET_STRENGTH = 0.32;
-const MAGNET_RADIUS = 90;
+const MAX_TILT_DEG = 5;
+const MAGNET_STRENGTH = 0.22;
+const MAGNET_RADIUS = 70;
 
 type Cleanup = () => void;
 
@@ -34,52 +32,70 @@ function prefersReducedMotion(): boolean {
 /* Inclinacion 3D de tarjetas                                          */
 /* ------------------------------------------------------------------ */
 
+/**
+ * BUG CORREGIDO - temblor en los bordes de la tarjeta.
+ *
+ * Antes, las escuchas vivian en el mismo elemento que rota. Al acercar el
+ * cursor a un borde, la rotacion desplazaba la tarjeta lo suficiente como
+ * para salir de debajo del puntero: se disparaba `pointerleave`, la
+ * tarjeta volvia a su sitio, entraba `pointerenter`, y vuelta a empezar.
+ * Un bucle de realimentacion que se percibe como trabado.
+ *
+ * La correccion es escuchar en el CONTENEDOR de perspectiva, que nunca se
+ * transforma, y escribir las variables en el hijo. El area de deteccion es
+ * entonces estable pase lo que pase con la rotacion.
+ */
 function initTilt() {
-  const cards = document.querySelectorAll<HTMLElement>('[data-tilt]');
-  if (cards.length === 0) return;
+  const roots = document.querySelectorAll<HTMLElement>('[data-tilt-root]');
+  if (roots.length === 0) return;
 
-  cards.forEach((card) => {
+  roots.forEach((root) => {
+    const card = root.querySelector<HTMLElement>('[data-tilt]');
+    if (!card) return;
+
     let frame = 0;
+    let inside = false;
 
     const onMove = (event: PointerEvent) => {
+      // Se mide sobre el contenedor, no sobre la tarjeta rotada: el rect de
+      // un elemento con rotateX/Y crece y se mueve, y daria coordenadas
+      // inestables justo en los bordes.
+      const rect = root.getBoundingClientRect();
+      const px = (event.clientX - rect.left) / rect.width;
+      const py = (event.clientY - rect.top) / rect.height;
+
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        const rect = card.getBoundingClientRect();
-        // Coordenadas relativas al centro, normalizadas a -0.5..0.5
-        const px = (event.clientX - rect.left) / rect.width;
-        const py = (event.clientY - rect.top) / rect.height;
-
+        if (!inside) {
+          inside = true;
+          card.classList.add('tilt-active');
+        }
         // El eje X se invierte: mover el raton hacia abajo debe hundir el
         // borde inferior, no levantarlo.
         card.style.setProperty('--tilt-y', `${(px - 0.5) * MAX_TILT_DEG * 2}deg`);
         card.style.setProperty('--tilt-x', `${-(py - 0.5) * MAX_TILT_DEG * 2}deg`);
-        card.style.setProperty('--tilt-z', '12px');
         card.style.setProperty('--pointer-x', `${px * 100}%`);
         card.style.setProperty('--pointer-y', `${py * 100}%`);
       });
     };
 
-    const onEnter = () => card.classList.add('tilt-active');
-
     const onLeave = () => {
       cancelAnimationFrame(frame);
-      // Se quita `tilt-active` para que la transicion devuelva la tarjeta
-      // a su posicion en lugar de saltar.
+      inside = false;
+      // Se quita `tilt-active` para que la transicion devuelva la tarjeta a
+      // su posicion en lugar de saltar.
       card.classList.remove('tilt-active');
       card.style.setProperty('--tilt-x', '0deg');
       card.style.setProperty('--tilt-y', '0deg');
-      card.style.setProperty('--tilt-z', '0px');
     };
 
-    card.addEventListener('pointerenter', onEnter);
-    card.addEventListener('pointermove', onMove);
-    card.addEventListener('pointerleave', onLeave);
+    root.addEventListener('pointermove', onMove);
+    root.addEventListener('pointerleave', onLeave);
 
     cleanups.push(() => {
       cancelAnimationFrame(frame);
-      card.removeEventListener('pointerenter', onEnter);
-      card.removeEventListener('pointermove', onMove);
-      card.removeEventListener('pointerleave', onLeave);
+      root.removeEventListener('pointermove', onMove);
+      root.removeEventListener('pointerleave', onLeave);
     });
   });
 }
@@ -88,12 +104,27 @@ function initTilt() {
 /* Botones magneticos                                                  */
 /* ------------------------------------------------------------------ */
 
+/**
+ * BUG CORREGIDO - bordes que desaparecen.
+ *
+ * `will-change: transform` permanente promueve el boton a su propia capa
+ * de GPU. El navegador cachea esa capa a una resolucion fija, y al
+ * desplazarla con valores decimales el borde de 1px cae entre pixeles y
+ * parpadea o desaparece.
+ *
+ * Dos correcciones: el desplazamiento se redondea a enteros, y
+ * `will-change` solo se activa mientras el boton se mueve de verdad.
+ */
 function initMagnetic() {
   const magnets = document.querySelectorAll<HTMLElement>('[data-magnetic]');
   if (magnets.length === 0) return;
 
   magnets.forEach((el) => {
     let frame = 0;
+
+    const onEnter = () => {
+      el.style.willChange = 'transform';
+    };
 
     const onMove = (event: PointerEvent) => {
       cancelAnimationFrame(frame);
@@ -106,89 +137,33 @@ function initMagnetic() {
         // La atraccion se desvanece con la distancia: cerca del borde del
         // radio el desplazamiento es casi nulo y no da tirones al entrar.
         const falloff = Math.max(0, 1 - distance / (MAGNET_RADIUS + rect.width / 2));
-        el.style.transform = `translate(${dx * MAGNET_STRENGTH * falloff}px, ${dy * MAGNET_STRENGTH * falloff}px)`;
+        const x = Math.round(dx * MAGNET_STRENGTH * falloff);
+        const y = Math.round(dy * MAGNET_STRENGTH * falloff);
+
+        el.style.transform = x === 0 && y === 0 ? '' : `translate(${x}px, ${y}px)`;
       });
     };
 
     const onLeave = () => {
       cancelAnimationFrame(frame);
       el.style.transform = '';
+      // Liberar la capa al terminar: mantenerla viva consume memoria de
+      // video y es justo lo que provoca el artefacto del borde.
+      el.style.willChange = '';
     };
 
+    el.addEventListener('pointerenter', onEnter);
     el.addEventListener('pointermove', onMove);
     el.addEventListener('pointerleave', onLeave);
 
     cleanups.push(() => {
       cancelAnimationFrame(frame);
+      el.removeEventListener('pointerenter', onEnter);
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerleave', onLeave);
+      el.style.transform = '';
+      el.style.willChange = '';
     });
-  });
-}
-
-/* ------------------------------------------------------------------ */
-/* Cursor propio                                                       */
-/* ------------------------------------------------------------------ */
-
-function initCursor() {
-  const dot = document.querySelector<HTMLElement>('[data-cursor-dot]');
-  const ring = document.querySelector<HTMLElement>('[data-cursor-ring]');
-  if (!dot || !ring) return;
-
-  let pointerX = window.innerWidth / 2;
-  let pointerY = window.innerHeight / 2;
-  let ringX = pointerX;
-  let ringY = pointerY;
-  let frame = 0;
-  let active = false;
-
-  const onMove = (event: PointerEvent) => {
-    pointerX = event.clientX;
-    pointerY = event.clientY;
-    if (!active) {
-      active = true;
-      // Se revela en el primer movimiento real. Mostrarlo antes lo dejaria
-      // clavado en una esquina hasta que el usuario mueva el raton.
-      dot.dataset.active = '';
-      ring.dataset.active = '';
-      ringX = pointerX;
-      ringY = pointerY;
-    }
-  };
-
-  const onOver = (event: PointerEvent) => {
-    const target = event.target as HTMLElement | null;
-    const interactive = target?.closest('a, button, [role="button"], input, summary');
-    ring.classList.toggle('cursor-ring-hover', Boolean(interactive));
-  };
-
-  const onLeaveWindow = () => {
-    delete dot.dataset.active;
-    delete ring.dataset.active;
-    active = false;
-  };
-
-  function loop() {
-    // El punto sigue al puntero exacto; el anillo lo persigue con retardo.
-    // Ese desfase es lo que da la sensacion de peso.
-    ringX += (pointerX - ringX) * 0.18;
-    ringY += (pointerY - ringY) * 0.18;
-
-    dot!.style.transform = `translate3d(${pointerX}px, ${pointerY}px, 0)`;
-    ring!.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
-    frame = requestAnimationFrame(loop);
-  }
-
-  window.addEventListener('pointermove', onMove, { passive: true });
-  window.addEventListener('pointerover', onOver, { passive: true });
-  document.addEventListener('pointerleave', onLeaveWindow);
-  frame = requestAnimationFrame(loop);
-
-  cleanups.push(() => {
-    cancelAnimationFrame(frame);
-    window.removeEventListener('pointermove', onMove);
-    window.removeEventListener('pointerover', onOver);
-    document.removeEventListener('pointerleave', onLeaveWindow);
   });
 }
 
@@ -196,13 +171,10 @@ function initCursor() {
 
 export function initPointerEffects() {
   if (!canHover() || prefersReducedMotion()) return;
-  document.documentElement.dataset.pointerEffects = '';
   initTilt();
   initMagnetic();
-  initCursor();
 }
 
 export function destroyPointerEffects() {
   while (cleanups.length) cleanups.pop()?.();
-  delete document.documentElement.dataset.pointerEffects;
 }

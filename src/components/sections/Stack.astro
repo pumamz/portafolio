@@ -52,11 +52,23 @@ const t = useTranslations(lang);
                   <li>
                     {/* Cada logo en su propia celda con relieve. El nombre
                         siempre visible: un logo sin etiqueta obliga a
-                        reconocerlo, y no todo reclutador conoce todos. */}
-                    <div class="group/tech border-border/60 bg-bg-subtle/60 hover:border-accent/40 relative flex h-full flex-col items-center gap-2.5 rounded-2xl border px-3 py-4 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5">
+                        reconocerlo, y no todo reclutador conoce todos.
+
+                        El color de marca entra como variable CSS y solo se
+                        aplica en hover. Sin `brand` (Vercel, Railway) la
+                        variable no existe y el fallback deja el color del
+                        tema, que es justo lo que necesitan. */}
+                    <div
+                      class="group/tech border-border/60 bg-bg-subtle/60 relative flex h-full flex-col items-center gap-2.5 rounded-2xl border px-3 py-4 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:border-(--brand,--color-accent)"
+                      style={
+                        tech.brand
+                          ? `--brand-light:${tech.brand.light};--brand-dark:${tech.brand.dark}`
+                          : undefined
+                      }
+                    >
                       <Icon
                         name={tech.icon}
-                        class="text-text-muted group-hover/tech:text-accent size-7 transition-colors duration-300 group-hover/tech:scale-110 motion-reduce:group-hover/tech:scale-100"
+                        class="text-text-muted size-7 transition-[color,transform] duration-300 group-hover/tech:scale-110 group-hover/tech:text-(--brand-light,--color-text) motion-reduce:group-hover/tech:scale-100 dark:group-hover/tech:text-(--brand-dark,--color-text)"
                       />
                       <span class="text-text-muted group-hover/tech:text-text text-center text-xs leading-tight transition-colors duration-300">
                         {tech.name}

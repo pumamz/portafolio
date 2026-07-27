@@ -1,0 +1,24 @@
+---
+/**
+ * Arranque de las interacciones de puntero.
+ *
+ * No renderiza nada: solo engancha los efectos que se aplican a elementos
+ * que ya existen (inclinacion de tarjetas y botones magneticos).
+ *
+ * El cursor personalizado se retiro a peticion del autor. Nota para el
+ * futuro: un cursor propio obliga a acertar en todos los casos (campos de
+ * texto, bordes de ventana, carga lenta) y aporta poco frente a lo que
+ * estorba. El cursor del sistema es el que el visitante ya sabe usar.
+ */
+---
+
+<script>
+  import { initPointerEffects, destroyPointerEffects } from '../scripts/pointer-effects';
+
+  initPointerEffects();
+
+  // Con view transitions el <body> se reemplaza: hay que soltar las
+  // escuchas de los nodos viejos y volver a engancharlas a los nuevos.
+  document.addEventListener('astro:before-swap', destroyPointerEffects);
+  document.addEventListener('astro:after-swap', initPointerEffects);
+</script>

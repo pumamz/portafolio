@@ -31,7 +31,13 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
     ambas estuvieran en el mismo elemento, cada tarjeta tendria su propio
     punto de fuga y el conjunto no se leeria como un espacio unico. */
 }
-<div class="perspective-container">
+{
+  /* data-tilt-root marca el area estable de deteccion. Las escuchas del
+    puntero van AQUI y no en la tarjeta que rota: si estuvieran en el
+    elemento transformado, la rotacion lo apartaria del cursor cerca de los
+    bordes y se produciria un bucle de entrada y salida. */
+}
+<div class="perspective-container" data-tilt-root>
   {
     /* Doble bisel: marco exterior con reborde, nucleo dentro. La tarjeta
       deja de ser un rectangulo sobre el fondo y pasa a parecer una pieza
