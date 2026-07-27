@@ -71,15 +71,26 @@ const cvHref = site.cv[lang];
           pegada al fondo. width duplica el ancho mostrado para pantallas
           de alta densidad; Astro genera WebP con srcset desde aqui. */
       }
-      <div class="bezel-shell max-w-80">
-        <Image
-          src={photo}
-          alt={t('about.photoAlt')}
-          width={640}
-          densities={[1, 2]}
-          loading="lazy"
-          class="w-full rounded-[calc(var(--radius-core))] object-cover"
-        />
+      {
+        /* El marco se inclina y la imagen se desplaza dentro en sentido
+          contrario. Ese desfase es lo que da volumen a una foto plana. */
+      }
+      <div data-photo-depth class="bezel-shell photo-depth max-w-80">
+        <div class="relative overflow-hidden rounded-[var(--radius-core)]">
+          <Image
+            src={photo}
+            alt={t('about.photoAlt')}
+            width={640}
+            densities={[1, 2]}
+            loading="lazy"
+            class="photo-depth-inner w-full object-cover"
+          />
+          <div
+            aria-hidden="true"
+            class="photo-depth-sheen pointer-events-none absolute inset-0 mix-blend-soft-light"
+          >
+          </div>
+        </div>
       </div>
 
       <div>

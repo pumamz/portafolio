@@ -147,9 +147,9 @@ importa de verdad, que es lo que bloquea el primer pintado.
 
 | Metrica            | Presupuesto | Actual     |
 | ------------------ | ----------- | ---------- |
-| JS inicial (gzip)  | < 30 KB     | **6.7 KB** |
+| JS inicial (gzip)  | < 30 KB     | **7.9 KB** |
 | JS diferido (gzip) | < 150 KB    | **128 KB** |
-| CSS (gzip)         | < 15 KB     | **9.9 KB** |
+| CSS (gzip)         | < 15 KB     | **9.3 KB** |
 
 **Regla:** nada que bloquee el primer pintado. Three.js entra por `import()`
 dentro de `requestIdleCallback` y no debe aparecer nunca en el HTML inicial

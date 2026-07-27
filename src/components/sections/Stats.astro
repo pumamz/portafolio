@@ -19,10 +19,12 @@ const led = projects.filter((p) => /lider|lead/i.test(p.data.role)).length;
 const techCount = stack.reduce((total, group) => total + group.items.length, 0);
 
 const stats = [
-  { value: String(projects.length), label: t('stats.projects') },
-  { value: String(led), label: t('stats.led') },
-  { value: '2023', label: t('stats.since') },
-  { value: String(techCount), label: t('stats.stack') },
+  { value: projects.length, label: t('stats.projects'), animate: true },
+  { value: led, label: t('stats.led'), animate: true },
+  // El ano NO se anima: contar desde cero hasta 2023 no significa nada y
+  // durante un segundo muestra fechas falsas.
+  { value: 2023, label: t('stats.since'), animate: false },
+  { value: techCount, label: t('stats.stack'), animate: true },
 ];
 ---
 
@@ -43,7 +45,12 @@ const stats = [
           <dt class="text-text-faint font-mono text-[0.625rem] tracking-[0.2em] uppercase">
             {stat.label}
           </dt>
-          <dd class="font-display text-text mt-3 text-3xl tabular-nums">{stat.value}</dd>
+          {/* tabular-nums es imprescindible aqui: sin cifras de ancho fijo
+              el numero cambia de anchura en cada fotograma y el bloque
+              entero tiembla mientras cuenta. */}
+          <dd class="font-display text-text mt-3 text-3xl tabular-nums">
+            {stat.animate ? <span data-count-to={stat.value}>0</span> : stat.value}
+          </dd>
         </div>
       ))
     }

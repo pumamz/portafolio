@@ -1,0 +1,148 @@
+---
+import { Icon } from 'astro-icon/components';
+import { stack } from '../config/stack';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  label: string;
+  hint: string;
+}
+
+const { lang, label, hint } = Astro.props;
+
+// Todas las tecnologias en una sola lista, sin agrupar: la esfera es una
+// vista alternativa del mismo contenido que la rejilla de abajo.
+const items = stack.flatMap((group) => group.items);
+
+/**
+ * Distribucion de Fibonacci sobre la esfera.
+ *
+ * Repartir por latitud y longitud regulares amontona los puntos en los
+ * polos. La espiral de Fibonacci los separa de forma casi uniforme, que es
+ * lo que hace que la esfera se lea como un objeto y no como una malla.
+ */
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+const placed = items.map((tech, i) => {
+  // y recorre de 1 a -1; el desplazamiento de 0.5 evita clavar puntos
+  // exactamente en los polos, donde se solaparian.
+  const y = 1 - ((i + 0.5) / items.length) * 2;
+  const elevation = Math.asin(y) * (180 / Math.PI);
+  const azimuth = ((GOLDEN_ANGLE * i) % (Math.PI * 2)) * (180 / Math.PI);
+
+  return { tech, elevation, azimuth };
+});
+---
+
+<div data-sphere class="relative select-none" aria-label={label}>
+  {/* La perspectiva vive en el contenedor; la esfera solo rota. */}
+  <div class="[perspective-origin:center] [perspective:1200px]">
+    <div
+      data-sphere-stage
+      class="sphere-stage relative mx-auto aspect-square w-full max-w-md cursor-grab touch-none [transform-style:preserve-3d] data-[dragging]:cursor-grabbing"
+      style="--sphere-x: -12deg; --sphere-y: 0deg;"
+    >
+      {
+        placed.map(({ tech, elevation, azimuth }) => (
+          <div
+            class="sphere-item absolute top-1/2 left-1/2 [transform-style:preserve-3d]"
+            style={`--theta:${azimuth.toFixed(3)}deg; --phi:${elevation.toFixed(3)}deg;`}
+          >
+            {/* La contra-rotacion mantiene el logo mirando a camara.
+                Las cuatro rotaciones cancelan exactamente la cadena del
+                padre, por pares, hasta la identidad. */}
+            <div
+              class="sphere-face group/tech"
+              style={
+                tech.brand
+                  ? `--brand-light:${tech.brand.light};--brand-dark:${tech.brand.dark}`
+                  : undefined
+              }
+            >
+              <span class="border-border/60 bg-surface/80 flex size-14 items-center justify-center rounded-2xl border backdrop-blur-sm transition-colors duration-300 hover:border-(--brand-light,--color-accent) dark:hover:border-(--brand-dark,--color-accent)">
+                <Icon
+                  name={tech.icon}
+                  class="text-text-muted size-6 transition-colors duration-300 group-hover/tech:text-(--brand-light,--color-text) dark:group-hover/tech:text-(--brand-dark,--color-text)"
+                />
+              </span>
+              <span class="sr-only">{tech.name}</span>
+              <span
+                aria-hidden="true"
+                class="text-text-faint pointer-events-none absolute inset-x-0 -bottom-5 text-center font-mono text-[0.5625rem] whitespace-nowrap opacity-0 transition-opacity duration-300 group-hover/tech:opacity-100"
+              >
+                {tech.name}
+              </span>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <p class="text-text-faint mt-4 text-center font-mono text-[0.625rem] tracking-[0.2em] uppercase">
+    {hint}
+  </p>
+
+  {
+    /* Lista textual equivalente. La esfera es decorativa para quien navega
+      con lector de pantalla: el contenido real vive en la rejilla de la
+      seccion, asi que aqui basta con no estorbar. */
+  }
+  <span class="sr-only">
+    {items.map((tech) => tech.name).join(', ')}
+  </span>
+</div>
+
+<style>
+  /* Radio de la esfera. En pantallas pequenas se reduce para que los logos
+     no se salgan del contenedor. */
+  .sphere-stage {
+    --radius: 190px;
+    transform: rotateX(var(--sphere-x)) rotateY(var(--sphere-y));
+  }
+
+  @media (max-width: 640px) {
+    .sphere-stage {
+      --radius: 130px;
+    }
+  }
+
+  /* Coloca cada logo sobre la superficie de la esfera. El orden importa:
+     primero el azimut, luego la elevacion, y por ultimo el desplazamiento
+     hacia fuera. */
+  .sphere-item {
+    transform: rotateY(var(--theta)) rotateX(var(--phi)) translateZ(var(--radius));
+    margin-left: -1.75rem;
+    margin-top: -1.75rem;
+  }
+
+  /* Cancela la cadena completa de rotaciones para que el logo mire
+     siempre al observador:
+       Rx(gx)·Ry(gy)·Ry(θ)·Rx(-φ) · Rx(φ)·Ry(-θ)·Ry(-gy)·Rx(-gx) = I
+     Se escriben en orden inverso porque las transformaciones CSS se
+     componen de izquierda a derecha. */
+  .sphere-face {
+    position: relative;
+    transform: rotateX(calc(-1 * var(--phi))) rotateY(calc(-1 * var(--theta)))
+      rotateY(calc(-1 * var(--sphere-y))) rotateX(calc(-1 * var(--sphere-x)));
+    transform-style: preserve-3d;
+  }
+
+  /* Sin movimiento continuo, la esfera se aplana a una disposicion legible
+     en lugar de quedarse girando. Sigue siendo arrastrable. */
+  @media (prefers-reduced-motion: reduce) {
+    .sphere-stage {
+      --radius: 150px;
+    }
+  }
+</style>
+
+<script>
+  import { initTechSphere, destroyTechSphere } from '../scripts/tech-sphere';
+
+  initTechSphere();
+
+  document.addEventListener('astro:before-swap', destroyTechSphere);
+  document.addEventListener('astro:after-swap', initTechSphere);
+</script>

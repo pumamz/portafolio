@@ -14,11 +14,22 @@
 
 <script>
   import { initPointerEffects, destroyPointerEffects } from '../scripts/pointer-effects';
+  import { initAmbient, destroyAmbient } from '../scripts/ambient';
 
-  initPointerEffects();
+  const start = () => {
+    initPointerEffects();
+    initAmbient();
+  };
+
+  const stop = () => {
+    destroyPointerEffects();
+    destroyAmbient();
+  };
+
+  start();
 
   // Con view transitions el <body> se reemplaza: hay que soltar las
   // escuchas de los nodos viejos y volver a engancharlas a los nuevos.
-  document.addEventListener('astro:before-swap', destroyPointerEffects);
-  document.addEventListener('astro:after-swap', initPointerEffects);
+  document.addEventListener('astro:before-swap', stop);
+  document.addEventListener('astro:after-swap', start);
 </script>

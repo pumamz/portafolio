@@ -62,6 +62,8 @@ export const ui = {
     'stack.eyebrow': 'Stack',
     'stack.intro':
       'Solo tecnologias que he usado en los proyectos de arriba. Pasa el cursor para ver donde.',
+    'stack.sphereLabel': 'Esfera interactiva de tecnologias',
+    'stack.sphereHint': 'Arrastra para girar',
 
     'stats.projects': 'Sistemas construidos',
     'stats.led': 'Proyectos liderados',
@@ -124,6 +126,8 @@ export const ui = {
     'stack.title': 'What I work with',
     'stack.eyebrow': 'Stack',
     'stack.intro': 'Only technologies I have used in the projects above. Hover to see where.',
+    'stack.sphereLabel': 'Interactive technology sphere',
+    'stack.sphereHint': 'Drag to rotate',
 
     'stats.projects': 'Systems built',
     'stats.led': 'Projects led',

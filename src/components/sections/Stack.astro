@@ -3,19 +3,21 @@ import { Icon } from 'astro-icon/components';
 import { getLangFromUrl, useTranslations } from '../../i18n/utils';
 import { stack } from '../../config/stack';
 import SectionHeading from '../SectionHeading.astro';
+import TechSphere from '../TechSphere.astro';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 ---
 
-<section class="border-border/60 relative border-y">
+<section data-reactive-grid class="border-border/60 relative border-y">
   {
-    /* Rejilla tenue de fondo. Da textura sin competir con el contenido y
-      ancla visualmente la seccion como si fuera un plano tecnico. */
+    /* Rejilla tenue de fondo. La mascara sigue al cursor: el area cercana
+      al puntero se revela y el resto se apaga, como si la superficie
+      reaccionara al tacto. Las variables las escribe el script. */
   }
   <div
     aria-hidden="true"
-    class="pointer-events-none absolute inset-0 -z-10 [background-image:linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] [background-size:56px_56px] opacity-[0.035]"
+    class="reactive-grid pointer-events-none absolute inset-0 -z-10 [background-image:linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)] [background-size:56px_56px]"
   >
   </div>
 
@@ -27,6 +29,15 @@ const t = useTranslations(lang);
       title={t('stack.title')}
       intro={t('stack.intro')}
     />
+
+    {
+      /* Esfera arrastrable. Es una vista alternativa del mismo contenido
+        que la rejilla de abajo, no informacion nueva: si el 3D falla o el
+        visitante usa lector de pantalla, no se pierde nada. */
+    }
+    <div class="mt-16 flex justify-center">
+      <TechSphere lang={lang} label={t('stack.sphereLabel')} hint={t('stack.sphereHint')} />
+    </div>
 
     {
       /* Bento asimetrico: los grupos nucleares ocupan el doble de ancho.

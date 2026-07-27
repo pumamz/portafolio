@@ -459,6 +459,102 @@
   );
 }
 
+/* ============================================================
+   REJILLA REACTIVA
+   La rejilla esta siempre pintada; lo que se mueve es la mascara. Asi el
+   efecto no repinta la rejilla ni anima ninguna propiedad que provoque
+   reflujo: solo cambia el centro de un gradiente.
+   ============================================================ */
+@utility reactive-grid {
+  --grid-x: 50%;
+  --grid-y: 50%;
+  --grid-power: 0;
+  opacity: calc(0.03 + var(--grid-power) * 0.05);
+  mask-image:
+    radial-gradient(
+      22rem circle at var(--grid-x) var(--grid-y),
+      black,
+      transparent calc(70% - var(--grid-power) * 20%)
+    ),
+    radial-gradient(ellipse at center, black, transparent 75%);
+  mask-composite: add;
+  -webkit-mask-composite: source-over;
+  transition:
+    opacity 600ms var(--ease-fluid),
+    mask-image 200ms linear;
+}
+
+/* ============================================================
+   FOTO CON PROFUNDIDAD
+   Dos capas con desplazamientos opuestos. El desfase entre el marco y la
+   imagen que contiene es lo que el ojo interpreta como volumen sobre una
+   fotografia plana.
+   ============================================================ */
+@utility photo-depth {
+  --photo-rx: 0deg;
+  --photo-ry: 0deg;
+  --photo-shift-x: 0px;
+  --photo-shift-y: 0px;
+  --photo-light-x: 50%;
+  --photo-light-y: 50%;
+  transform-style: preserve-3d;
+  transform: perspective(900px) rotateX(var(--photo-rx)) rotateY(var(--photo-ry));
+  transition: transform 500ms var(--ease-fluid);
+}
+
+@utility photo-depth-inner {
+  transform: translate3d(var(--photo-shift-x), var(--photo-shift-y), 0) scale(1.06);
+  transition: transform 500ms var(--ease-fluid);
+}
+
+/* Reflejo que sigue al puntero, como la luz sobre un cristal. */
+@utility photo-depth-sheen {
+  background: radial-gradient(
+    12rem circle at var(--photo-light-x) var(--photo-light-y),
+    color-mix(in oklch, var(--n-0) 22%, transparent),
+    transparent 65%
+  );
+}
+
+/* ============================================================
+   TRANSICIONES 3D ENTRE PAGINAS
+   La pagina saliente se aleja y la entrante llega desde el fondo, con
+   perspectiva real. Da continuidad espacial: en lugar de un corte, se
+   percibe un desplazamiento dentro del mismo espacio.
+
+   Se anima con transform y opacity exclusivamente, que son las dos unicas
+   propiedades que el compositor resuelve sin tocar el diseno.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: page-exit 320ms var(--ease-fluid) both;
+  }
+
+  ::view-transition-new(root) {
+    animation: page-enter 420ms var(--ease-fluid) both;
+  }
+}
+
+@keyframes page-exit {
+  to {
+    opacity: 0;
+    transform: perspective(1200px) translate3d(0, -1.5rem, -120px);
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) translate3d(0, 2rem, -220px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1200px) translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
 /* Utilidad estandar para texto solo-lector-de-pantalla */
 @utility sr-only {
   position: absolute;
