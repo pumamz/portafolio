@@ -1,0 +1,117 @@
+---
+/**
+ * Lienzo del campo de particulas.
+ *
+ * El canvas se pinta detras del contenido y es puramente decorativo:
+ * `aria-hidden` y `pointer-events-none` para que no interfiera ni con
+ * lectores de pantalla ni con los clics del hero.
+ *
+ * Three.js se carga con `import()` dinamico DESPUES del primer pintado.
+ * Un import estatico lo meteria en el bundle inicial y retrasaria el LCP
+ * exactamente en la pantalla que un reclutador mira durante 30 segundos.
+ */
+---
+
+<canvas
+  data-particle-field
+  aria-hidden="true"
+  class="pointer-events-none absolute inset-0 -z-10 size-full opacity-0 transition-opacity duration-1000 data-[ready]:opacity-100 motion-reduce:transition-none"
+>
+</canvas>
+
+<script>
+  import type { createParticleField } from '../scripts/particle-field';
+
+  type Field = ReturnType<typeof createParticleField>;
+  let field: Field | null = null;
+
+  /**
+   * Convierte cualquier color CSS a un hexadecimal que Three.js entienda.
+   *
+   * Los tokens del sistema estan en OKLCH, que `THREE.Color` no parsea.
+   * El truco es delegar en el navegador: al asignar `fillStyle` en un
+   * canvas 2D, la propiedad se devuelve ya normalizada a #rrggbb.
+   */
+  function cssColorToHex(value: string, fallback: string): string {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return fallback;
+
+    ctx.fillStyle = fallback;
+    ctx.fillStyle = value.trim();
+    const result = ctx.fillStyle;
+    return typeof result === 'string' ? result : fallback;
+  }
+
+  function readThemeColors() {
+    const styles = getComputedStyle(document.documentElement);
+    const isDark = document.documentElement.classList.contains('dark');
+    return {
+      accent: cssColorToHex(styles.getPropertyValue('--accent'), '#8b2942'),
+      // El color base de las particulas es el del texto, atenuado por el
+      // shader. Asi el campo pertenece al tema en lugar de flotar encima.
+      base: cssColorToHex(styles.getPropertyValue('--text-faint'), isDark ? '#8a8a94' : '#6b6b76'),
+    };
+  }
+
+  function supportsWebGL(): boolean {
+    try {
+      const canvas = document.createElement('canvas');
+      return Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'));
+    } catch {
+      return false;
+    }
+  }
+
+  async function mount() {
+    const canvas = document.querySelector<HTMLCanvasElement>('[data-particle-field]');
+    if (!canvas || field) return;
+
+    // Quien pide menos movimiento no recibe una animacion continua. El
+    // resplandor CSS del hero sigue ahi, asi que la seccion no queda vacia.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!supportsWebGL()) return;
+
+    const { createParticleField } = await import('../scripts/particle-field');
+    const { accent, base } = readThemeColors();
+
+    field = createParticleField({ canvas, accent, base });
+    canvas.dataset.ready = '';
+  }
+
+  function unmount() {
+    field?.destroy();
+    field = null;
+  }
+
+  /** El tema cambia los tokens; el shader necesita los nuevos valores. */
+  function syncColors() {
+    if (!field) return;
+    const { accent, base } = readThemeColors();
+    field.setColors(accent, base);
+  }
+
+  // requestIdleCallback cede el hilo hasta que el navegador termina lo
+  // urgente. El sitio es utilizable antes de que exista una sola particula.
+  const schedule = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 200));
+
+  function init() {
+    if (!document.querySelector('[data-particle-field]')) return;
+    schedule(() => void mount());
+  }
+
+  init();
+
+  // Con view transitions el DOM se reemplaza: hay que liberar la GPU antes
+  // del intercambio y volver a montar si la nueva pagina tiene lienzo.
+  document.addEventListener('astro:before-swap', unmount);
+  document.addEventListener('astro:after-swap', init);
+
+  // El conmutador de tema alterna la clase en <html>; observarla es mas
+  // fiable que acoplarse al boton concreto.
+  new MutationObserver(syncColors).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+</script>

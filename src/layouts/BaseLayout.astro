@@ -9,6 +9,7 @@ import { getLangFromUrl, useTranslations, localeCodes, otherLang, path } from '.
 import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import CustomCursor from '../components/CustomCursor.astro';
 
 interface Props {
   title: string;
@@ -107,6 +108,19 @@ const jsonLd = {
     >
       {t('nav.skipToContent')}
     </a>
+
+    {
+      /* Barra de progreso de lectura. `scroll-progress` la vincula al
+        scroll del documento con animation-timeline, sin JavaScript: la
+        anima el compositor y no toca el hilo principal. */
+    }
+    <div
+      aria-hidden="true"
+      class="bg-accent scroll-progress fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0"
+    >
+    </div>
+
+    <CustomCursor />
 
     <Header altPath={altPath} />
 

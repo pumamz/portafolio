@@ -1,6 +1,7 @@
 ---
 import { getLangFromUrl, useTranslations, path } from '../../i18n/utils';
 import { site } from '../../config/site';
+import ParticleField from '../ParticleField.astro';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -18,9 +19,15 @@ const lastName = rest.join(' ');
   }
   <div
     aria-hidden="true"
-    class="bg-accent/15 pointer-events-none absolute -top-40 -right-40 -z-10 size-[40rem] rounded-full blur-[120px]"
+    class="bg-accent/15 parallax-slow pointer-events-none absolute -top-40 -right-40 -z-10 size-[40rem] rounded-full blur-[120px]"
   >
   </div>
+
+  {
+    /* Campo de particulas WebGL. Se carga tras el primer pintado, asi que
+      el titular es legible antes de que exista una sola particula. */
+  }
+  <ParticleField />
 
   <div class="mx-auto w-full max-w-5xl">
     <p
@@ -46,16 +53,22 @@ const lastName = rest.join(' ');
     </p>
 
     <div class="reveal mt-10 flex flex-wrap items-center gap-4" style="--delay: 340ms">
+      {
+        /* data-magnetic: el boton se acerca al puntero. Es un adorno puro,
+          el enlace funciona igual sin JavaScript. */
+      }
       <a
         href={`${path(lang)}#contact`}
-        class="bg-accent text-on-accent hover:bg-accent-hover rounded-full px-7 py-3.5 text-base font-medium transition-colors duration-150"
+        data-magnetic
+        class="bg-accent text-on-accent hover:bg-accent-hover rounded-full px-7 py-3.5 text-base font-medium transition-colors duration-150 will-change-transform"
       >
         {t('hero.cta.primary')}
       </a>
 
       <a
         href={`${path(lang)}#work`}
-        class="border-border-strong hover:border-accent hover:text-accent rounded-full border px-7 py-3.5 text-base font-medium transition-colors duration-150"
+        data-magnetic
+        class="border-border-strong hover:border-accent hover:text-accent rounded-full border px-7 py-3.5 text-base font-medium transition-colors duration-150 will-change-transform"
       >
         {t('hero.cta.secondary')}
       </a>

@@ -228,6 +228,129 @@
   }
 }
 
+/* ============================================================
+   ANIMACIONES LIGADAS AL SCROLL
+   `animation-timeline: view()` vincula el progreso de la animacion a la
+   posicion del elemento en el viewport, sin JavaScript ni
+   IntersectionObserver. Lo ejecuta el compositor, asi que no bloquea el
+   hilo principal ni con cien elementos.
+
+   Todo va dentro de @supports: donde no hay soporte (Safari y Firefox a
+   dia de hoy) no se aplica ninguna animacion y el contenido se ve, que es
+   el comportamiento correcto. Nunca al reves.
+   ============================================================ */
+/* Nota: `@utility` no admite anidamiento, asi que las condiciones van
+   DENTRO de cada definicion y no envolviendolas. */
+
+/* Entrada de secciones y tarjetas al aparecer. */
+@utility reveal-on-scroll {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      /* Empieza cuando asoma por abajo y termina al 40% de recorrido: el
+         elemento queda asentado bastante antes de estar centrado. */
+      animation-range: entry 0% cover 40%;
+    }
+  }
+}
+
+/* Capas de parallax. La distancia marca la intensidad. */
+@utility parallax-slow {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      --parallax-distance: 4rem;
+      animation: parallax-drift linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
+@utility parallax-fast {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      --parallax-distance: 10rem;
+      animation: parallax-drift linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
+/* Barra de progreso de lectura, anclada al scroll del documento. */
+@utility scroll-progress {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      animation: scale-x linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(2.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes parallax-drift {
+  from {
+    transform: translateY(var(--parallax-distance, 4rem));
+  }
+  to {
+    transform: translateY(calc(var(--parallax-distance, 4rem) * -1));
+  }
+}
+
+@keyframes scale-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ============================================================
+   PROFUNDIDAD 3D
+   La perspectiva se declara en el contenedor, no en el elemento que
+   rota: solo asi los hijos comparten un mismo punto de fuga y la escena
+   se lee como un espacio coherente en lugar de como piezas sueltas.
+   ============================================================ */
+@utility perspective-container {
+  perspective: 1000px;
+  perspective-origin: center;
+}
+
+@utility tilt-card {
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+    translateZ(var(--tilt-z, 0px));
+  transition: transform 400ms var(--ease-out-quint);
+  will-change: transform;
+}
+
+/* Mientras el puntero esta encima se sigue al cursor en tiempo real, sin
+   transicion: interpolar aqui produciria retardo perceptible. */
+@utility tilt-active {
+  transition: none;
+}
+
+/* Brillo que sigue al puntero sobre la tarjeta. */
+@utility tilt-sheen {
+  background: radial-gradient(
+    18rem circle at var(--pointer-x, 50%) var(--pointer-y, 50%),
+    var(--accent-surface),
+    transparent 60%
+  );
+}
+
 /* Utilidad estandar para texto solo-lector-de-pantalla */
 @utility sr-only {
   position: absolute;

@@ -20,7 +20,7 @@ const links = [
   }
   <div
     aria-hidden="true"
-    class="bg-accent/15 pointer-events-none absolute -bottom-52 -left-40 -z-10 size-[36rem] rounded-full blur-[120px]"
+    class="bg-accent/15 parallax-fast pointer-events-none absolute -bottom-52 -left-40 -z-10 size-[36rem] rounded-full blur-[120px]"
   >
   </div>
 
@@ -30,7 +30,8 @@ const links = [
     <div class="mt-12 flex flex-wrap items-center gap-4">
       <a
         href={`mailto:${site.email}`}
-        class="bg-accent text-on-accent hover:bg-accent-hover rounded-full px-7 py-3.5 text-base font-medium transition-colors duration-150"
+        data-magnetic
+        class="bg-accent text-on-accent hover:bg-accent-hover rounded-full px-7 py-3.5 text-base font-medium transition-colors duration-150 will-change-transform"
       >
         {t('contact.email')}
       </a>

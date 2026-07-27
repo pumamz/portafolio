@@ -50,11 +50,12 @@ Que mas se evaluo y por que se descarto.
 
 ## Indice
 
-| ADR                                | Decision                      | Estado   |
-| ---------------------------------- | ----------------------------- | -------- |
-| [0001](./0001-framework.md)        | Astro con islas de React      | Aceptado |
-| [0002](./0002-estilos-y-tokens.md) | Tailwind v4 + tokens en capas | Aceptado |
-| [0003](./0003-i18n.md)             | i18n nativo, ES por defecto   | Aceptado |
-| [0004](./0004-contenido.md)        | Content collections + Zod     | Aceptado |
-| [0005](./0005-hosting.md)          | Vercel con subdominio gratis  | Aceptado |
-| [0006](./0006-bun.md)              | Bun como gestor de paquetes   | Aceptado |
+| ADR                                  | Decision                      | Estado   |
+| ------------------------------------ | ----------------------------- | -------- |
+| [0001](./0001-framework.md)          | Astro con islas de React      | Aceptado |
+| [0002](./0002-estilos-y-tokens.md)   | Tailwind v4 + tokens en capas | Aceptado |
+| [0003](./0003-i18n.md)               | i18n nativo, ES por defecto   | Aceptado |
+| [0004](./0004-contenido.md)          | Content collections + Zod     | Aceptado |
+| [0005](./0005-hosting.md)            | Vercel con subdominio gratis  | Aceptado |
+| [0006](./0006-bun.md)                | Bun como gestor de paquetes   | Aceptado |
+| [0007](./0007-webgl-y-movimiento.md) | WebGL con Three.js diferido   | Aceptado |

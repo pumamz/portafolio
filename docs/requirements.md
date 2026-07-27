@@ -97,15 +97,15 @@ Registrado para que no se cuele por impulso a mitad de construccion:
 
 ## 4. Requisitos no funcionales
 
-| Area               | Requisito                                                          |
-| ------------------ | ------------------------------------------------------------------ |
-| **Rendimiento**    | LCP < 1.5 s en 4G. JS inicial < 30 KB comprimido.                  |
-| **Accesibilidad**  | WCAG 2.2 AA. Navegable solo con teclado. Contraste >= 4.5:1.       |
-| **Movimiento**     | Toda animacion respeta `prefers-reduced-motion`. Sin parpadeos.    |
-| **SEO**            | Metadatos por pagina, `hreflang`, sitemap, JSON-LD de tipo Person. |
-| **Navegadores**    | Ultimas 2 versiones de Chrome, Firefox, Safari y Edge.             |
-| **Responsive**     | 320 px a 2560 px. Sin scroll horizontal en ningun punto.           |
-| **Mantenibilidad** | Anadir un proyecto = crear 2 ficheros Markdown. Sin tocar codigo.  |
+| Area               | Requisito                                                             |
+| ------------------ | --------------------------------------------------------------------- |
+| **Rendimiento**    | LCP < 1.5 s en 4G. JS inicial < 30 KB y diferido < 150 KB (ADR-0007). |
+| **Accesibilidad**  | WCAG 2.2 AA. Navegable solo con teclado. Contraste >= 4.5:1.          |
+| **Movimiento**     | Toda animacion respeta `prefers-reduced-motion`. Sin parpadeos.       |
+| **SEO**            | Metadatos por pagina, `hreflang`, sitemap, JSON-LD de tipo Person.    |
+| **Navegadores**    | Ultimas 2 versiones de Chrome, Firefox, Safari y Edge.                |
+| **Responsive**     | 320 px a 2560 px. Sin scroll horizontal en ningun punto.              |
+| **Mantenibilidad** | Anadir un proyecto = crear 2 ficheros Markdown. Sin tocar codigo.     |
 
 ---
 
@@ -126,14 +126,15 @@ un contraste que juega en contra, y puede alienar a la audiencia A3. Mitigacione
 
 ## 6. Decisiones tomadas
 
-| Tema      | Decision                              | ADR                                    |
-| --------- | ------------------------------------- | -------------------------------------- |
-| Framework | Astro + islas de React                | [0001](./adr/0001-framework.md)        |
-| Estilos   | Tailwind CSS v4 con tokens semanticos | [0002](./adr/0002-estilos-y-tokens.md) |
-| i18n      | i18n nativo de Astro, ES por defecto  | [0003](./adr/0003-i18n.md)             |
-| Contenido | Content collections validadas con Zod | [0004](./adr/0004-contenido.md)        |
-| Hosting   | Vercel, subdominio gratuito           | [0005](./adr/0005-hosting.md)          |
-| Runtime   | Bun como gestor de paquetes           | [0006](./adr/0006-bun.md)              |
+| Tema       | Decision                              | ADR                                      |
+| ---------- | ------------------------------------- | ---------------------------------------- |
+| Framework  | Astro + islas de React                | [0001](./adr/0001-framework.md)          |
+| Estilos    | Tailwind CSS v4 con tokens semanticos | [0002](./adr/0002-estilos-y-tokens.md)   |
+| i18n       | i18n nativo de Astro, ES por defecto  | [0003](./adr/0003-i18n.md)               |
+| Contenido  | Content collections validadas con Zod | [0004](./adr/0004-contenido.md)          |
+| Hosting    | Vercel, subdominio gratuito           | [0005](./adr/0005-hosting.md)            |
+| Runtime    | Bun como gestor de paquetes           | [0006](./adr/0006-bun.md)                |
+| Movimiento | WebGL con Three.js, carga diferida    | [0007](./adr/0007-webgl-y-movimiento.md) |
 
 ---
 

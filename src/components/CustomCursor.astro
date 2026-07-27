@@ -1,0 +1,70 @@
+---
+/**
+ * Cursor propio y arranque de las interacciones de puntero.
+ *
+ * Los dos elementos existen siempre en el DOM pero son invisibles hasta
+ * que el script los activa. Asi nunca aparecen en tactiles ni cuando el
+ * visitante pide menos movimiento.
+ *
+ * El cursor del sistema NO se oculta. Ocultarlo obliga a que el sustituto
+ * sea perfecto en todos los casos (campos de texto, bordes de ventana,
+ * carga lenta); si falla, el visitante se queda sin puntero. Este se
+ * superpone al nativo y suma en lugar de reemplazar.
+ */
+---
+
+<div
+  data-cursor-ring
+  aria-hidden="true"
+  class="border-accent pointer-events-none fixed top-0 left-0 z-[100] hidden size-9 -translate-x-1/2 -translate-y-1/2 rounded-full border opacity-0 transition-[opacity,width,height,background-color] duration-300 data-[active]:opacity-70 [html[data-pointer-effects]_&]:block"
+>
+</div>
+
+<div
+  data-cursor-dot
+  aria-hidden="true"
+  class="bg-accent pointer-events-none fixed top-0 left-0 z-[100] hidden size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 duration-200 data-[active]:opacity-100 [html[data-pointer-effects]_&]:block"
+>
+</div>
+
+<style>
+  /* Los dos elementos se posicionan con translate3d desde JavaScript, asi
+     que el centrado no puede depender de -translate-x-1/2 en el mismo
+     transform. Se compensa con un margen negativo. */
+  [data-cursor-ring],
+  [data-cursor-dot] {
+    margin-left: 0;
+    margin-top: 0;
+    transform-origin: center;
+  }
+
+  [data-cursor-ring] {
+    margin-left: -1.125rem;
+    margin-top: -1.125rem;
+  }
+
+  [data-cursor-dot] {
+    margin-left: -0.1875rem;
+    margin-top: -0.1875rem;
+  }
+
+  /* Sobre un elemento interactivo el anillo crece y se rellena. */
+  :global([data-cursor-ring].cursor-ring-hover) {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-left: -1.75rem;
+    margin-top: -1.75rem;
+    background-color: color-mix(in oklch, var(--accent) 18%, transparent);
+  }
+</style>
+
+<script>
+  import { initPointerEffects, destroyPointerEffects } from '../scripts/pointer-effects';
+
+  initPointerEffects();
+
+  // Con view transitions el <body> se reemplaza: hay que soltar las
+  // escuchas de los nodos viejos y volver a engancharlas a los nuevos.
+  document.addEventListener('astro:before-swap', destroyPointerEffects);
+  document.addEventListener('astro:after-swap', initPointerEffects);
+</script>
