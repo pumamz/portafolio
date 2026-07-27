@@ -1,0 +1,35 @@
+---
+import { getLangFromUrl, useTranslations } from '../../i18n/utils';
+import { stack } from '../../config/stack';
+import SectionHeading from '../SectionHeading.astro';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section class="bg-bg-subtle border-border/60 border-y">
+  <div class="mx-auto max-w-5xl px-6 py-24 sm:py-32">
+    <SectionHeading id="stack" index="03" title={t('stack.title')} intro={t('stack.intro')} />
+
+    <dl class="mt-14 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        stack.map((group) => (
+          <div>
+            <dt class="text-text-faint border-border border-b pb-2 font-mono text-xs tracking-widest uppercase">
+              {group.label[lang]}
+            </dt>
+            <dd class="mt-4">
+              <ul class="flex flex-wrap gap-2">
+                {group.items.map((item) => (
+                  <li class="border-border bg-surface text-text rounded-full border px-3 py-1.5 text-sm">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>

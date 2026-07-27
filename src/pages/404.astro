@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { useTranslations, path } from '../i18n/utils';
+import { site } from '../config/site';
+
+/**
+ * Pagina 404 unica para todo el sitio.
+ *
+ * En un sitio estatico solo puede existir una: el servidor la devuelve sin
+ * saber el idioma pretendido. Se muestra en espanol, el idioma por defecto,
+ * con enlaces a las portadas de ambos idiomas para que nadie quede atrapado.
+ */
+const lang = 'es' as const;
+const t = useTranslations(lang);
+---
+
+<BaseLayout title={`${t('404.title')} - ${site.name}`} description={t('404.body')}>
+  <section class="mx-auto flex min-h-[70svh] max-w-5xl flex-col justify-center px-6 py-24">
+    <p class="text-accent font-mono text-sm tracking-[0.25em] uppercase">404</p>
+    <h1 class="mt-5 text-4xl">{t('404.title')}</h1>
+    <p class="text-text-muted mt-5 max-w-prose text-lg">{t('404.body')}</p>
+
+    <div class="mt-10 flex flex-wrap gap-4">
+      <a
+        href={path('es')}
+        class="bg-accent text-on-accent hover:bg-accent-hover rounded-full px-7 py-3.5 text-base font-medium transition-colors duration-150"
+      >
+        {t('404.cta')}
+      </a>
+      <a
+        href={path('en')}
+        hreflang="en"
+        lang="en"
+        class="border-border-strong hover:border-accent hover:text-accent rounded-full border px-7 py-3.5 text-base font-medium transition-colors duration-150"
+      >
+        Back home (English)
+      </a>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,117 @@
+---
+import { getLangFromUrl, useTranslations } from '../../i18n/utils';
+import { site } from '../../config/site';
+import SectionHeading from '../SectionHeading.astro';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const links = [
+  { href: site.social.github, label: 'GitHub' },
+  { href: site.social.linkedin, label: 'LinkedIn' },
+  { href: site.social.x, label: 'X' },
+].filter((l) => l.href);
+---
+
+<section class="relative overflow-hidden">
+  {
+    /* Resplandor de vino, espejo del hero: cierra la pagina con el mismo
+      gesto con el que se abre. */
+  }
+  <div
+    aria-hidden="true"
+    class="bg-accent/15 pointer-events-none absolute -bottom-52 -left-40 -z-10 size-[36rem] rounded-full blur-[120px]"
+  >
+  </div>
+
+  <div class="mx-auto max-w-5xl px-6 py-24 sm:py-32">
+    <SectionHeading id="contact" index="04" title={t('contact.title')} intro={t('contact.intro')} />
+
+    <div class="mt-12 flex flex-wrap items-center gap-4">
+      <a
+        href={`mailto:${site.email}`}
+        class="bg-accent text-on-accent hover:bg-accent-hover rounded-full px-7 py-3.5 text-base font-medium transition-colors duration-150"
+      >
+        {t('contact.email')}
+      </a>
+
+      {
+        /* Un boton de copiar junto al correo visible. Mucha gente prefiere
+          pegarlo en su cliente de correo antes que abrir mailto:, que en
+          algunos equipos lanza una aplicacion que nadie usa. */
+      }
+      <button
+        type="button"
+        data-copy-email
+        data-email={site.email}
+        data-label-copy={t('contact.copy')}
+        data-label-copied={t('contact.copied')}
+        class="border-border-strong hover:border-accent text-text-muted hover:text-accent rounded-full border px-6 py-3.5 font-mono text-sm transition-colors duration-150"
+      >
+        <span data-copy-text>{site.email}</span>
+      </button>
+    </div>
+
+    <div class="text-text-muted mt-12 flex flex-wrap items-center gap-x-8 gap-y-4 text-sm">
+      <p class="flex items-center gap-2">
+        {
+          /* El punto es decorativo; la disponibilidad se comunica con texto,
+            nunca solo con color. */
+        }
+        <span class="bg-ok inline-block size-2 rounded-full" aria-hidden="true"></span>
+        {t('contact.availability')}
+      </p>
+      <p>{site.location[lang]}</p>
+    </div>
+
+    {
+      links.length > 0 && (
+        <ul class="mt-8 flex flex-wrap gap-6">
+          {links.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-text decoration-accent text-base underline-offset-4 hover:underline"
+              >
+                {link.label} &nearr;
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</section>
+
+<script>
+  /**
+   * Copiar el correo al portapapeles.
+   * Delegado en `document` para sobrevivir a las view transitions.
+   */
+  const RESET_MS = 2000;
+
+  document.addEventListener('click', async (event) => {
+    const target = event.target as HTMLElement | null;
+    const button = target?.closest<HTMLElement>('[data-copy-email]');
+    if (!button) return;
+
+    const email = button.dataset.email;
+    const output = button.querySelector<HTMLElement>('[data-copy-text]');
+    if (!email || !output) return;
+
+    try {
+      await navigator.clipboard.writeText(email);
+    } catch {
+      // Contexto no seguro o permiso denegado: el correo sigue visible en
+      // pantalla y el enlace mailto: continua funcionando.
+      return;
+    }
+
+    output.textContent = button.dataset.labelCopied ?? 'Copiado';
+    window.setTimeout(() => {
+      output.textContent = email;
+    }, RESET_MS);
+  });
+</script>

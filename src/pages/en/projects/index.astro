@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProjectCard from '../../../components/ProjectCard.astro';
+import { getProjects, workIndexUrl } from '../../../lib/projects';
+import { useTranslations } from '../../../i18n/utils';
+import { site } from '../../../config/site';
+
+const lang = 'en' as const;
+const t = useTranslations(lang);
+const projects = await getProjects(lang);
+---
+
+<BaseLayout
+  title={`${t('work.indexTitle')} - ${site.name}`}
+  description={t('work.intro')}
+  altPath={workIndexUrl('es')}
+>
+  <section class="mx-auto max-w-5xl px-6 py-16 sm:py-24">
+    <h1 class="text-4xl">{t('work.title')}</h1>
+    <p class="text-text-muted mt-5 max-w-prose text-lg">{t('work.intro')}</p>
+
+    <div class="mt-14 flex flex-col gap-6">
+      {
+        projects.map((project, i) => (
+          <ProjectCard project={project} index={i + 1} headingLevel={2} />
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

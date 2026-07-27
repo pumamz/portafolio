@@ -1,0 +1,102 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import { getLangFromUrl, useTranslations } from '../../i18n/utils';
+import { site } from '../../config/site';
+import SectionHeading from '../SectionHeading.astro';
+import photo from '../../assets/daniel.jpeg';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const entries = await getCollection('about', ({ data }) => data.lang === lang);
+const entry = entries[0];
+if (!entry) throw new Error(`Falta src/content/about/${lang}.md`);
+
+const { Content } = await render(entry);
+const { lead, education, facts } = entry.data;
+const cvHref = site.cv[lang];
+---
+
+<section class="mx-auto max-w-5xl px-6 py-24 sm:py-32">
+  <SectionHeading id="about" index="02" title={t('about.title')} intro={lead} />
+
+  <div class="mt-14 grid gap-12 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-16">
+    <div>
+      {
+        /* `prose` no esta disponible sin el plugin de tipografia, asi que el
+          ritmo vertical del texto se resuelve con space-y sobre los hijos
+          directos: una dependencia menos para cuatro parrafos. */
+      }
+      <div
+        class="text-text-muted [&_strong]:text-text max-w-prose space-y-5 text-base [&_strong]:font-semibold"
+      >
+        <Content />
+      </div>
+
+      {
+        cvHref && (
+          <a
+            href={cvHref}
+            download
+            class="border-border-strong hover:border-accent hover:text-accent mt-8 inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors duration-150"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="size-4"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+            </svg>
+            {t('about.downloadCv')}
+          </a>
+        )
+      }
+    </div>
+
+    <aside class="space-y-8">
+      {
+        /* width duplica el ancho mostrado (288px) para pantallas de alta
+          densidad. Astro genera AVIF y WebP con srcset a partir de aqui. */
+      }
+      <Image
+        src={photo}
+        alt={t('about.photoAlt')}
+        width={576}
+        densities={[1, 2]}
+        loading="lazy"
+        class="border-border w-full max-w-72 rounded-2xl border object-cover"
+      />
+
+      <div>
+        <h3
+          class="text-text-faint border-border border-b pb-2 font-mono text-xs tracking-widest uppercase"
+        >
+          {t('about.education')}
+        </h3>
+        <p class="text-text mt-4 text-base font-medium">{education.degree}</p>
+        <p class="text-text-muted text-sm">{education.institution}</p>
+        <p class="text-text-faint mt-1 font-mono text-xs">{education.period}</p>
+        {education.detail && <p class="text-text-faint mt-1 text-sm">{education.detail}</p>}
+      </div>
+
+      {
+        facts.length > 0 && (
+          <dl class="space-y-3">
+            {facts.map((fact) => (
+              <div class="border-border/60 flex gap-3 border-b pb-3 text-sm">
+                <dt class="text-text-faint w-28 shrink-0">{fact.label}</dt>
+                <dd class="text-text-muted">{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )
+      }
+    </aside>
+  </div>
+</section>

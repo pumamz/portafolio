@@ -1,0 +1,40 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CaseStudy from '../../components/CaseStudy.astro';
+import { getProjects, getTranslation, projectUrl } from '../../lib/projects';
+import { path } from '../../i18n/utils';
+import { site } from '../../config/site';
+
+/**
+ * Una pagina por proyecto en espanol.
+ *
+ * `altPath` se resuelve aqui, en tiempo de build, buscando la version
+ * inglesa por `translationKey`. De ese modo el conmutador de idioma lleva
+ * al mismo proyecto en lugar de a la portada, y el `hreflang` empareja las
+ * dos URLs correctas aunque sus slugs sean distintos.
+ */
+export const getStaticPaths = (async () => {
+  const projects = await getProjects('es');
+
+  return Promise.all(
+    projects.map(async (project) => {
+      const translation = await getTranslation(project, 'en');
+      return {
+        params: { slug: project.data.slug },
+        props: {
+          project,
+          altPath: translation ? projectUrl(translation) : path('en'),
+        },
+      };
+    }),
+  );
+}) satisfies GetStaticPaths;
+
+const { project, altPath } = Astro.props;
+const d = project.data;
+---
+
+<BaseLayout title={`${d.title} - ${site.name}`} description={d.tagline} altPath={altPath}>
+  <CaseStudy project={project} />
+</BaseLayout>

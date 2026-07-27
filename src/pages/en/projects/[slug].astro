@@ -1,0 +1,33 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CaseStudy from '../../../components/CaseStudy.astro';
+import { getProjects, getTranslation, projectUrl } from '../../../lib/projects';
+import { path } from '../../../i18n/utils';
+import { site } from '../../../config/site';
+
+/** Una pagina por proyecto en ingles. Espejo de src/pages/proyectos/[slug].astro. */
+export const getStaticPaths = (async () => {
+  const projects = await getProjects('en');
+
+  return Promise.all(
+    projects.map(async (project) => {
+      const translation = await getTranslation(project, 'es');
+      return {
+        params: { slug: project.data.slug },
+        props: {
+          project,
+          altPath: translation ? projectUrl(translation) : path('es'),
+        },
+      };
+    }),
+  );
+}) satisfies GetStaticPaths;
+
+const { project, altPath } = Astro.props;
+const d = project.data;
+---
+
+<BaseLayout title={`${d.title} - ${site.name}`} description={d.tagline} altPath={altPath}>
+  <CaseStudy project={project} />
+</BaseLayout>

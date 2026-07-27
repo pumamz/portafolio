@@ -36,7 +36,10 @@ export const ui = {
     'hero.scroll': 'Desplaza',
 
     'work.title': 'Proyectos seleccionados',
+    'work.intro':
+      'Sistemas completos, cada uno con un requisito real detras. Esto es lo que resolvia cada uno.',
     'work.viewCase': 'Ver caso completo',
+    'work.viewAll': 'Ver todos los proyectos',
     'work.viewLive': 'Ver en vivo',
     'work.viewCode': 'Ver codigo',
     'work.problem': 'El problema',
@@ -46,16 +49,23 @@ export const ui = {
     'work.period': 'Periodo',
     'work.stack': 'Tecnologias',
     'work.back': 'Volver a proyectos',
+    'work.indexTitle': 'Proyectos',
 
     'about.title': 'Sobre mi',
+    'about.education': 'Formacion',
     'about.downloadCv': 'Descargar CV',
+    'about.photoAlt': 'Retrato de Daniel Puma',
 
     'stack.title': 'Con que trabajo',
+    'stack.intro': 'Solo tecnologias que he usado en los proyectos de arriba.',
 
     'contact.title': 'Construyamos algo',
+    'contact.intro':
+      'Busco practicas o pasantias en sistemas empresariales, infraestructura y seguridad. Si encaja con lo que necesitas, escribeme.',
     'contact.email': 'Escribeme',
+    'contact.copy': 'Copiar correo',
     'contact.copied': 'Copiado',
-    'contact.availability': 'Disponible para nuevos proyectos',
+    'contact.availability': 'Disponible para practicas y pasantias',
 
     'footer.rights': 'Todos los derechos reservados',
     'footer.builtWith': 'Hecho con',
@@ -80,7 +90,10 @@ export const ui = {
     'hero.scroll': 'Scroll',
 
     'work.title': 'Selected work',
+    'work.intro':
+      'Complete systems, each with a real constraint behind it. Here is what each one solved.',
     'work.viewCase': 'Read case study',
+    'work.viewAll': 'View all work',
     'work.viewLive': 'View live',
     'work.viewCode': 'View code',
     'work.problem': 'The problem',
@@ -90,16 +103,23 @@ export const ui = {
     'work.period': 'Timeline',
     'work.stack': 'Tech stack',
     'work.back': 'Back to work',
+    'work.indexTitle': 'Work',
 
     'about.title': 'About',
+    'about.education': 'Education',
     'about.downloadCv': 'Download CV',
+    'about.photoAlt': 'Portrait of Daniel Puma',
 
     'stack.title': 'What I work with',
+    'stack.intro': 'Only technologies I have used in the projects above.',
 
     'contact.title': "Let's build something",
+    'contact.intro':
+      'I am looking for an internship in enterprise systems, infrastructure and security. If that fits what you need, get in touch.',
     'contact.email': 'Email me',
+    'contact.copy': 'Copy email',
     'contact.copied': 'Copied',
-    'contact.availability': 'Available for new projects',
+    'contact.availability': 'Available for internships',
 
     'footer.rights': 'All rights reserved',
     'footer.builtWith': 'Built with',

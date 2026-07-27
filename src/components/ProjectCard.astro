@@ -1,0 +1,112 @@
+---
+import type { Project } from '../lib/projects';
+import { projectUrl } from '../lib/projects';
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  project: Project;
+  /** Numero visible de la tarjeta: 01, 02... */
+  index: number;
+  /**
+   * Nivel del encabezado del titulo.
+   * En la portada la tarjeta cuelga de un h2 de seccion, asi que es h3.
+   * En el indice de proyectos cuelga directamente del h1, asi que debe ser
+   * h2: saltar de h1 a h3 rompe la navegacion por encabezados de los
+   * lectores de pantalla.
+   */
+  headingLevel?: 2 | 3;
+}
+
+const { project, index, headingLevel = 3 } = Astro.props;
+const d = project.data;
+const t = useTranslations(d.lang as Lang);
+const href = projectUrl(project);
+const num = String(index).padStart(2, '0');
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+---
+
+{
+  /* <article> y no <div>: cada tarjeta es contenido autonomo con su propio
+    encabezado, y los lectores de pantalla pueden saltar entre articulos. */
+}
+<article
+  class="group border-border hover:border-border-strong relative rounded-2xl border p-7 transition-colors duration-300 sm:p-9"
+>
+  <div class="flex items-start justify-between gap-6">
+    <div class="min-w-0">
+      <span class="text-text-faint font-mono text-xs tracking-widest" aria-hidden="true">{num}</span
+      >
+
+      <Heading class="mt-3 text-2xl">
+        {
+          /* El enlace envuelve solo el titulo, pero ::after lo extiende a
+            toda la tarjeta. Asi el area clicable es grande y el lector de
+            pantalla anuncia un unico enlace con texto descriptivo, en vez
+            de "enlace, enlace, enlace" por cada elemento. */
+        }
+        <a href={href} class="after:absolute after:inset-0 after:content-['']">
+          {d.title}
+        </a>
+      </Heading>
+
+      <p class="text-text-muted mt-3 max-w-prose text-base">{d.tagline}</p>
+    </div>
+
+    {/* Flecha decorativa: se desplaza al pasar por encima de la tarjeta. */}
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="text-text-faint group-hover:text-accent size-6 shrink-0 transition-all duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0"
+    >
+      <path d="M7 17 17 7M7 7h10v10"></path>
+    </svg>
+  </div>
+
+  <dl class="mt-7 grid gap-5 sm:grid-cols-2">
+    <div>
+      <dt class="text-text-faint font-mono text-xs tracking-widest uppercase">
+        {t('work.problem')}
+      </dt>
+      <dd class="text-text-muted mt-2 text-sm">{d.problem}</dd>
+    </div>
+    <div>
+      <dt class="text-text-faint font-mono text-xs tracking-widest uppercase">
+        {t('work.impact')}
+      </dt>
+      <dd class="text-text-muted mt-2 text-sm">{d.impact}</dd>
+    </div>
+  </dl>
+
+  <div class="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
+    <ul class="flex flex-wrap gap-2" aria-label={t('work.stack')}>
+      {
+        d.stack.map((tech) => (
+          <li class="border-border text-text-muted rounded-full border px-3 py-1 font-mono text-xs">
+            {tech}
+          </li>
+        ))
+      }
+    </ul>
+
+    {
+      d.liveUrl && (
+        // z-10 lo eleva por encima del ::after de la tarjeta; sin esto el
+        // enlace al caso de estudio se lo tragaria y seria inalcanzable.
+        <a
+          href={d.liveUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-accent relative z-10 ml-auto text-sm underline-offset-4 hover:underline"
+        >
+          {t('work.viewLive')} &nearr;
+        </a>
+      )
+    }
+  </div>
+</article>

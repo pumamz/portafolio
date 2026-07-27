@@ -59,4 +59,29 @@ const projects = defineCollection({
     }),
 });
 
-export const collections = { projects };
+/**
+ * Biografia. Un fichero por idioma.
+ *
+ * Va en una coleccion y no en `ui.ts` porque son varios parrafos de texto
+ * corrido: Markdown es mejor herramienta para eso que una cadena de
+ * TypeScript, y permite dar formato sin tocar codigo.
+ */
+const about = defineCollection({
+  loader: glob({ pattern: ['**/*.md', '!**/_*'], base: './src/content/about' }),
+  schema: z.object({
+    lang: z.enum(['es', 'en']),
+    /** Frase corta bajo el titulo de la seccion. */
+    lead: z.string(),
+    /** Datos de formacion mostrados aparte del texto corrido. */
+    education: z.object({
+      degree: z.string(),
+      institution: z.string(),
+      period: z.string(),
+      detail: z.string().optional(),
+    }),
+    /** Etiquetas cortas: disponibilidad, idiomas, afiliaciones. */
+    facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
+  }),
+});
+
+export const collections = { projects, about };

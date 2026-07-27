@@ -1,0 +1,25 @@
+---
+interface Props {
+  /** Numero de seccion, en monoespaciada. Aporta el aire editorial. */
+  index: string;
+  title: string;
+  intro?: string;
+  /** id del ancla para la navegacion. */
+  id: string;
+}
+
+const { index, title, intro, id } = Astro.props;
+---
+
+{
+  /* scroll-mt compensa la altura del header sticky: sin esto el titulo
+    queda oculto detras de la barra al saltar desde el menu. */
+}
+<div id={id} class="scroll-mt-28">
+  <div class="flex items-baseline gap-4">
+    <span class="text-accent font-mono text-sm tracking-widest" aria-hidden="true">{index}</span>
+    <h2 class="text-4xl">{title}</h2>
+  </div>
+
+  {intro && <p class="text-text-muted mt-5 max-w-prose text-lg">{intro}</p>}
+</div>
