@@ -9,15 +9,21 @@ const t = useTranslations(lang);
 const projects = await getProjects(lang);
 ---
 
-<section class="mx-auto max-w-5xl px-6 py-24 sm:py-32">
-  <SectionHeading id="work" index="01" title={t('work.title')} intro={t('work.intro')} />
+<section class="mx-auto max-w-6xl px-6 py-28 sm:py-36">
+  <SectionHeading
+    id="work"
+    index="01"
+    eyebrow={t('work.eyebrow')}
+    title={t('work.title')}
+    intro={t('work.intro')}
+  />
 
   {
     /* Una columna a proposito, no una rejilla. Con cuatro proyectos, unas
       tarjetas anchas dejan sitio para contar el problema y el impacto;
       una rejilla obligaria a recortarlo todo a un titulo y un icono. */
   }
-  <div class="mt-14 flex flex-col gap-6">
+  <div class="reveal-stagger mt-16 flex flex-col gap-6">
     {projects.map((project, i) => <ProjectCard project={project} index={i + 1} />)}
   </div>
 </section>

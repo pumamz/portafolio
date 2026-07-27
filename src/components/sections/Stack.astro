@@ -1,4 +1,5 @@
 ---
+import { Icon } from 'astro-icon/components';
 import { getLangFromUrl, useTranslations } from '../../i18n/utils';
 import { stack } from '../../config/stack';
 import SectionHeading from '../SectionHeading.astro';
@@ -7,29 +8,76 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 ---
 
-<section class="bg-bg-subtle border-border/60 border-y">
-  <div class="mx-auto max-w-5xl px-6 py-24 sm:py-32">
-    <SectionHeading id="stack" index="03" title={t('stack.title')} intro={t('stack.intro')} />
+<section class="border-border/60 relative border-y">
+  {
+    /* Rejilla tenue de fondo. Da textura sin competir con el contenido y
+      ancla visualmente la seccion como si fuera un plano tecnico. */
+  }
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-0 -z-10 [background-image:linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] [background-size:56px_56px] opacity-[0.035]"
+  >
+  </div>
 
-    <dl class="mt-14 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="mx-auto max-w-6xl px-6 py-28 sm:py-36">
+    <SectionHeading
+      id="stack"
+      index="03"
+      eyebrow={t('stack.eyebrow')}
+      title={t('stack.title')}
+      intro={t('stack.intro')}
+    />
+
+    {
+      /* Bento asimetrico: los grupos nucleares ocupan el doble de ancho.
+        Una rejilla uniforme de cuatro columnas trataria "Backend" y
+        "Datos" como si pesaran lo mismo, y no es cierto. */
+    }
+    <div class="reveal-stagger mt-16 grid gap-5 md:grid-cols-2">
       {
         stack.map((group) => (
-          <div>
-            <dt class="text-text-faint border-border border-b pb-2 font-mono text-xs tracking-widest uppercase">
-              {group.label[lang]}
-            </dt>
-            <dd class="mt-4">
-              <ul class="flex flex-wrap gap-2">
-                {group.items.map((item) => (
-                  <li class="border-border bg-surface text-text rounded-full border px-3 py-1.5 text-sm">
-                    {item}
+          <div class="bezel-shell group/card">
+            <div class="bezel-core h-full p-7 sm:p-8">
+              <div class="flex items-baseline justify-between gap-4">
+                <h3 class="text-text font-mono text-xs tracking-[0.2em] uppercase">
+                  {group.label[lang]}
+                </h3>
+                <span class="text-text-faint font-mono text-xs tabular-nums">
+                  {String(group.items.length).padStart(2, '0')}
+                </span>
+              </div>
+
+              <ul class="mt-7 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                {group.items.map((tech) => (
+                  <li>
+                    {/* Cada logo en su propia celda con relieve. El nombre
+                        siempre visible: un logo sin etiqueta obliga a
+                        reconocerlo, y no todo reclutador conoce todos. */}
+                    <div class="group/tech border-border/60 bg-bg-subtle/60 hover:border-accent/40 relative flex h-full flex-col items-center gap-2.5 rounded-2xl border px-3 py-4 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5">
+                      <Icon
+                        name={tech.icon}
+                        class="text-text-muted group-hover/tech:text-accent size-7 transition-colors duration-300 group-hover/tech:scale-110 motion-reduce:group-hover/tech:scale-100"
+                      />
+                      <span class="text-text-muted group-hover/tech:text-text text-center text-xs leading-tight transition-colors duration-300">
+                        {tech.name}
+                      </span>
+
+                      {/* Donde se uso, en un tooltip propio. Es el dato que
+                          convierte una lista de logos en evidencia. */}
+                      <span
+                        role="tooltip"
+                        class="glass text-text pointer-events-none absolute -top-2 left-1/2 z-20 w-max max-w-[10rem] -translate-x-1/2 -translate-y-full rounded-xl px-2.5 py-1.5 text-center text-[0.6875rem] leading-tight opacity-0 transition-opacity duration-300 group-hover/tech:opacity-100"
+                      >
+                        {tech.note[lang]}
+                      </span>
+                    </div>
                   </li>
                 ))}
               </ul>
-            </dd>
+            </div>
           </div>
         ))
       }
-    </dl>
+    </div>
   </div>
 </section>

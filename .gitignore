@@ -34,3 +34,7 @@ pnpm-debug.log*
 # vscode setting folder
 .vscode/
 .vercel
+
+# skills 
+.agents
+.claude

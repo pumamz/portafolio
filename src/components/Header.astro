@@ -1,5 +1,5 @@
 ---
-import { getLangFromUrl, useTranslations, path, routes } from '../i18n/utils';
+import { getLangFromUrl, useTranslations, path } from '../i18n/utils';
 import { site } from '../config/site';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 import ThemeToggle from './ThemeToggle.astro';
@@ -23,76 +23,83 @@ const nav = [
 ---
 
 {
-  /* `sticky` en lugar de `fixed`: no se superpone al contenido al final de
-    la pagina ni requiere compensar con padding en el body.
-    El desenfoque de fondo mantiene legible el texto que pasa por debajo. */
+  /* Isla flotante, no una barra pegada al borde superior. Un header a
+    sangre completa parte la pagina en dos; una pastilla despegada deja
+    respirar el contenido por debajo y se lee como un objeto.
+
+    El desenfoque va aqui, en un elemento fijo, nunca sobre contenido que
+    se desplaza: eso obligaria a repintar en cada fotograma. */
 }
-<header class="border-border/60 bg-bg/80 sticky top-0 z-40 border-b backdrop-blur-md">
-  <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4">
-    <a
-      href={home}
-      class="font-display hover:text-accent text-lg tracking-tight transition-colors duration-150"
+<header class="pointer-events-none fixed inset-x-0 top-0 z-40 px-4 pt-4 sm:px-6 sm:pt-6">
+  <div class="mx-auto max-w-6xl">
+    <div
+      class="glass pointer-events-auto flex items-center justify-between gap-4 rounded-full py-2.5 pr-2.5 pl-5 sm:pl-6"
     >
-      {site.name}
-    </a>
+      <a
+        href={home}
+        class="font-display hover:text-accent text-base tracking-tight transition-colors duration-300"
+      >
+        {site.name}
+      </a>
 
-    <div class="flex items-center gap-2">
-      <nav aria-label={t('nav.work')} class="hidden md:block">
-        <ul class="flex items-center gap-6">
-          {
-            nav.map((item) => (
-              <li>
-                <a
-                  href={item.href}
-                  class="text-text-muted hover:text-text decoration-accent text-sm underline-offset-4 transition-colors duration-150 hover:underline"
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
+      <div class="flex items-center gap-1.5">
+        <nav aria-label={t('nav.work')} class="hidden md:block">
+          <ul class="flex items-center gap-1">
+            {
+              nav.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    class="text-text-muted hover:text-text hover:bg-text/5 rounded-full px-3.5 py-2 text-sm transition-colors duration-300"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
 
-      <div class="flex items-center gap-2">
+        <span class="bg-border mx-1 hidden h-5 w-px md:block" aria-hidden="true"></span>
+
         <LanguageSwitcher altPath={altPath} />
         <ThemeToggle />
       </div>
     </div>
-  </div>
 
-  {
-    /* Navegacion movil sin JavaScript, con <details> nativo.
-      Coste asumido: no se cierra con Escape ni al pulsar un enlace.
-      A cambio, cero kilobytes de JavaScript para un menu de cuatro enlaces. */
-  }
-  <details class="group border-border/60 border-t md:hidden">
-    <summary
-      class="text-text-muted flex cursor-pointer items-center justify-between px-6 py-3 text-sm marker:content-none [&::-webkit-details-marker]:hidden"
-    >
-      {t('nav.toggleMenu')}
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        class="size-4 transition-transform duration-300 group-open:rotate-180 motion-reduce:transition-none"
+    {
+      /* Navegacion movil sin JavaScript, con <details> nativo.
+        Coste asumido: no se cierra con Escape ni al pulsar un enlace. A
+        cambio, cero kilobytes para un menu de cuatro enlaces. */
+    }
+    <details class="group glass pointer-events-auto mt-2 overflow-hidden rounded-3xl md:hidden">
+      <summary
+        class="text-text-muted flex cursor-pointer items-center justify-between px-5 py-3 text-sm marker:content-none [&::-webkit-details-marker]:hidden"
       >
-        <path d="m6 9 6 6 6-6"></path>
-      </svg>
-    </summary>
-    <ul class="flex flex-col gap-1 px-6 pb-4">
-      {
-        nav.map((item) => (
-          <li>
-            <a href={item.href} class="text-text block py-2 text-base">
-              {item.label}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </details>
+        {t('nav.toggleMenu')}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-open:rotate-180 motion-reduce:transition-none"
+        >
+          <path d="m6 9 6 6 6-6"></path>
+        </svg>
+      </summary>
+      <ul class="flex flex-col gap-0.5 px-3 pb-3">
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} class="text-text hover:bg-text/5 block rounded-2xl px-2 py-2.5">
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </details>
+  </div>
 </header>

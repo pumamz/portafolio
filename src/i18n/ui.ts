@@ -36,6 +36,7 @@ export const ui = {
     'hero.scroll': 'Desplaza',
 
     'work.title': 'Proyectos seleccionados',
+    'work.eyebrow': 'Proyectos',
     'work.intro':
       'Sistemas completos, cada uno con un requisito real detras. Esto es lo que resolvia cada uno.',
     'work.viewCase': 'Ver caso completo',
@@ -52,12 +53,20 @@ export const ui = {
     'work.indexTitle': 'Proyectos',
 
     'about.title': 'Sobre mi',
+    'about.eyebrow': 'Perfil',
     'about.education': 'Formacion',
     'about.downloadCv': 'Descargar CV',
     'about.photoAlt': 'Retrato de Daniel Puma',
 
     'stack.title': 'Con que trabajo',
-    'stack.intro': 'Solo tecnologias que he usado en los proyectos de arriba.',
+    'stack.eyebrow': 'Stack',
+    'stack.intro':
+      'Solo tecnologias que he usado en los proyectos de arriba. Pasa el cursor para ver donde.',
+
+    'stats.projects': 'Sistemas construidos',
+    'stats.led': 'Proyectos liderados',
+    'stats.since': 'Programando desde',
+    'stats.stack': 'Tecnologias en uso',
 
     'contact.title': 'Construyamos algo',
     'contact.intro':
@@ -90,6 +99,7 @@ export const ui = {
     'hero.scroll': 'Scroll',
 
     'work.title': 'Selected work',
+    'work.eyebrow': 'Work',
     'work.intro':
       'Complete systems, each with a real constraint behind it. Here is what each one solved.',
     'work.viewCase': 'Read case study',
@@ -106,12 +116,19 @@ export const ui = {
     'work.indexTitle': 'Work',
 
     'about.title': 'About',
+    'about.eyebrow': 'Profile',
     'about.education': 'Education',
     'about.downloadCv': 'Download CV',
     'about.photoAlt': 'Portrait of Daniel Puma',
 
     'stack.title': 'What I work with',
-    'stack.intro': 'Only technologies I have used in the projects above.',
+    'stack.eyebrow': 'Stack',
+    'stack.intro': 'Only technologies I have used in the projects above. Hover to see where.',
+
+    'stats.projects': 'Systems built',
+    'stats.led': 'Projects led',
+    'stats.since': 'Coding since',
+    'stats.stack': 'Technologies in use',
 
     'contact.title': "Let's build something",
     'contact.intro':

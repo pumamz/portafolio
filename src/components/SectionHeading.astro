@@ -2,24 +2,28 @@
 interface Props {
   /** Numero de seccion, en monoespaciada. Aporta el aire editorial. */
   index: string;
+  /** Etiqueta corta sobre el titulo. Da entrada antes del salto de escala. */
+  eyebrow?: string;
   title: string;
   intro?: string;
   /** id del ancla para la navegacion. */
   id: string;
 }
 
-const { index, title, intro, id } = Astro.props;
+const { index, eyebrow, title, intro, id } = Astro.props;
 ---
 
 {
-  /* scroll-mt compensa la altura del header sticky: sin esto el titulo
-    queda oculto detras de la barra al saltar desde el menu. */
+  /* scroll-mt compensa la altura del header flotante: sin esto el titulo
+    queda tapado al saltar desde el menu. */
 }
-<div id={id} class="reveal-on-scroll scroll-mt-28">
-  <div class="flex items-baseline gap-4">
-    <span class="text-accent font-mono text-sm tracking-widest" aria-hidden="true">{index}</span>
-    <h2 class="text-4xl">{title}</h2>
-  </div>
+<div id={id} class="reveal-on-scroll scroll-mt-32">
+  <span class="eyebrow">
+    <span class="text-accent" aria-hidden="true">{index}</span>
+    {eyebrow ?? title}
+  </span>
 
-  {intro && <p class="text-text-muted mt-5 max-w-prose text-lg">{intro}</p>}
+  <h2 class="mt-6 text-4xl">{title}</h2>
+
+  {intro && <p class="text-text-muted mt-6 max-w-prose text-lg text-pretty">{intro}</p>}
 </div>

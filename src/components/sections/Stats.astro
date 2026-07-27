@@ -1,0 +1,51 @@
+---
+import { getLangFromUrl, useTranslations } from '../../i18n/utils';
+import { getProjects } from '../../lib/projects';
+import { stack } from '../../config/stack';
+
+/**
+ * Franja de cifras entre el hero y los proyectos.
+ *
+ * Todas las cifras se **calculan del contenido real**, no se escriben a
+ * mano: si manana se anade un proyecto, el numero sube solo. Un dato
+ * inventado en un portafolio se detecta en la primera entrevista, y un
+ * dato desactualizado transmite descuido.
+ */
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const projects = await getProjects(lang);
+const led = projects.filter((p) => /lider|lead/i.test(p.data.role)).length;
+const techCount = stack.reduce((total, group) => total + group.items.length, 0);
+
+const stats = [
+  { value: String(projects.length), label: t('stats.projects') },
+  { value: String(led), label: t('stats.led') },
+  { value: '2023', label: t('stats.since') },
+  { value: String(techCount), label: t('stats.stack') },
+];
+---
+
+<section class="border-border/60 border-y">
+  <dl class="reveal-stagger mx-auto grid max-w-6xl grid-cols-2 md:grid-cols-4">
+    {
+      stats.map((stat, i) => (
+        <div
+          class:list={[
+            'border-border/60 px-6 py-10 sm:px-8 sm:py-12',
+            // Bordes solo entre celdas: en una rejilla, rodear cada celda
+            // duplica cada linea interior y engorda la retícula.
+            i % 2 === 1 && 'border-l',
+            i < 2 && 'border-b md:border-b-0',
+            i === 2 && 'md:border-l',
+          ]}
+        >
+          <dt class="text-text-faint font-mono text-[0.625rem] tracking-[0.2em] uppercase">
+            {stat.label}
+          </dt>
+          <dd class="font-display text-text mt-3 text-3xl tabular-nums">{stat.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</section>

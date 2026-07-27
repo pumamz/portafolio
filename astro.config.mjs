@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import icon from 'astro-icon';
 import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
@@ -26,6 +27,14 @@ export default defineConfig({
   // desplegada. Cuando exista una isla que realmente lo necesite, se
   // reactiva anadiendo `react()` aqui y su import arriba.
   integrations: [
+    // Los iconos se inlinean como SVG en tiempo de build: sin peticiones
+    // extra, sin fuente de iconos y sin JavaScript en el cliente.
+    icon({
+      include: {
+        'simple-icons': ['*'],
+        lucide: ['*'],
+      },
+    }),
     sitemap({
       i18n: {
         defaultLocale: 'es',

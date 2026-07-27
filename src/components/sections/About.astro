@@ -18,10 +18,16 @@ const { lead, education, facts } = entry.data;
 const cvHref = site.cv[lang];
 ---
 
-<section class="mx-auto max-w-5xl px-6 py-24 sm:py-32">
-  <SectionHeading id="about" index="02" title={t('about.title')} intro={lead} />
+<section class="mx-auto max-w-6xl px-6 py-28 sm:py-36">
+  <SectionHeading
+    id="about"
+    index="02"
+    eyebrow={t('about.eyebrow')}
+    title={t('about.title')}
+    intro={lead}
+  />
 
-  <div class="mt-14 grid gap-12 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-16">
+  <div class="mt-16 grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
     <div>
       {
         /* `prose` no esta disponible sin el plugin de tipografia, asi que el
@@ -61,21 +67,24 @@ const cvHref = site.cv[lang];
 
     <aside class="space-y-8">
       {
-        /* width duplica el ancho mostrado (288px) para pantallas de alta
-          densidad. Astro genera AVIF y WebP con srcset a partir de aqui. */
+        /* La foto tambien va en doble bisel: enmarcada como una pieza, no
+          pegada al fondo. width duplica el ancho mostrado para pantallas
+          de alta densidad; Astro genera WebP con srcset desde aqui. */
       }
-      <Image
-        src={photo}
-        alt={t('about.photoAlt')}
-        width={576}
-        densities={[1, 2]}
-        loading="lazy"
-        class="border-border w-full max-w-72 rounded-2xl border object-cover"
-      />
+      <div class="bezel-shell max-w-80">
+        <Image
+          src={photo}
+          alt={t('about.photoAlt')}
+          width={640}
+          densities={[1, 2]}
+          loading="lazy"
+          class="w-full rounded-[calc(var(--radius-core))] object-cover"
+        />
+      </div>
 
       <div>
         <h3
-          class="text-text-faint border-border border-b pb-2 font-mono text-xs tracking-widest uppercase"
+          class="text-text-faint border-border border-b pb-2 font-mono text-[0.625rem] tracking-[0.2em] uppercase"
         >
           {t('about.education')}
         </h3>
