@@ -21,7 +21,11 @@ Antes de cuestionar una decision tecnica, leer [`docs/adr/`](./docs/adr/).
 | Tailwind   | 4.x     | Via `@tailwindcss/vite`, sin fichero de config |
 | React      | 19.x    | Instalado, **integracion desactivada**         |
 | TypeScript | 6.x     | Fijado: TS 7 rompe `astro check`               |
-| Bun        | 1.3     | Gestor de paquetes. Nunca usar npm aqui.       |
+| Bun        | 1.3+    | Gestor de paquetes. Nunca usar npm aqui.       |
+| Node       | 22.12+  | Exigido en `engines`.                          |
+| Three.js   | 0.185   | Solo el campo de particulas. Carga diferida.   |
+| astro-icon | 1.x     | simple-icons y lucide, inlineados como SVG en  |
+|            |         | build: sin peticiones ni JS de cliente.        |
 
 ## Comandos
 
@@ -30,39 +34,46 @@ bun run dev           # servidor de desarrollo
 bun run build         # astro check + build (debe pasar antes de commit)
 bun run build:fast    # build sin type-check, para iterar rapido
 bun run check         # solo type-check
+bun run preview       # sirve el build de produccion en local
 bun run format        # prettier --write
-bun run check:visual  # revision visual con Playwright (ver abajo)
+bun run format:check  # falla si algo no esta formateado
 ```
+
+**Los comandos de este fichero son POSIX** (bash / fish). El proyecto se monto
+en Windows, asi que si aparece algo con `Select-String` o `Get-ChildItem` es
+un resto sin traducir.
+
+**`node_modules` no es portable entre sistemas.** Contiene binarios nativos
+(`@rolldown/binding-*`). Al clonar, o al mover el repositorio de Windows a
+Linux, `bun install` antes de nada: si no, `astro` falla con
+`Cannot find module '@rolldown/binding-linux-x64-gnu'`.
 
 ### Revision visual
 
-`scripts/visual-check.mjs` abre el sitio en un navegador real y ejerce lo que
-no se puede comprobar leyendo el HTML: arrastra la esfera, inclina una
-tarjeta, navega por las anclas, cambia de tema y compara pixeles. Deja
-capturas en `.playwright/`.
+**La hace Daniel a mano, en el navegador. No hay automatizacion de navegador
+en este proyecto y no debe anadirse ninguna.** Nada de Playwright, Puppeteer
+ni capturas comparadas: si un cambio toca algo que se ve, se describe que
+mirar y lo comprueba el.
+
+Conviene saber por que existe esa revision, porque limita lo que un agente
+puede afirmar. Hubo cuatro fallos que el HTML no delataba: un canvas WebGL
+que renderizaba sin verse, una esfera colapsada a un tercio de su tamano, un
+color de marca que nunca se aplicaba, y **todas las animaciones de scroll del
+sitio muertas** por una abreviada de CSS que el minificador reescribia mal
+(ver trampas). En los cuatro casos la clase estaba puesta y el marcado era
+correcto.
+
+De ahi la regla: **leer el HTML no demuestra que algo se vea.** Un agente
+puede verificar lo que es comprobable sin ojos — que el build pasa, que un
+patron no aparece en el CSS compilado, que un fichero no entra en el bundle —
+y para el resto dice explicitamente que no lo ha comprobado.
+
+Revision en local contra el build de produccion, no contra `astro dev`, que
+inyecta su barra de herramientas:
 
 ```bash
 bun run build && bunx astro preview --port 4330
-$env:BASE_URL='http://localhost:4330'; bun run check:visual
 ```
-
-**Ejecutar contra el build de produccion**, no contra `astro dev`: el
-servidor de desarrollo inyecta su barra de herramientas y sale en las
-capturas.
-
-Encontro cuatro fallos que el HTML no delataba: un canvas WebGL que
-renderizaba sin verse, una esfera colapsada a un tercio de su tamano, un
-color de marca que nunca se aplicaba, y **todas las animaciones de scroll
-del sitio muertas** por una abreviada de CSS que el minificador reescribia
-mal (ver trampas).
-
-Al anadir un efecto visual, anadir aqui una comprobacion que falle si ese
-efecto deja de verse. La comprobacion tiene que medir el **resultado
-renderizado**, no la presencia de la clase: la clase estaba puesta en los
-cuatro casos.
-
-Para desarrollo en segundo plano: `bunx astro dev --background`, y luego
-`astro dev stop` / `astro dev status` / `astro dev logs`.
 
 ## Reglas del proyecto
 
@@ -150,6 +161,8 @@ src/
   config/timeline.ts    Hitos de la trayectoria, ES y EN.
   content.config.ts     Esquemas Zod del contenido.
   content/projects/     Proyectos en Markdown, es/ y en/.
+  content/about/        Biografia, un fichero por idioma.
+  lib/projects.ts       Consultas sobre la coleccion. Ver abajo.
   i18n/
     ui.ts               Todos los textos de interfaz, ES y EN.
     utils.ts            getLangFromUrl, useTranslations, path, routes.
@@ -160,17 +173,72 @@ src/
     Footer.astro
     ThemeToggle.astro   Claro/oscuro sin JavaScript de framework.
     LanguageSwitcher.astro
+    SectionHeading.astro
+    ProjectCard.astro   Tarjeta de proyecto en la portada y el indice.
+    CaseStudy.astro     Cuerpo de la pagina de detalle.
+    ParticleField.astro Lienzo WebGL del hero.
+    TechSphere.astro    Esfera de tecnologias arrastrable.
+    PointerEffects.astro  Solo arranca scripts, no renderiza nada.
     sections/           Hero, Stats, Work, About, Timeline, Stack,
                         Services y Contact, en ese orden en la portada.
+  scripts/              Logica de cliente. Ver el contrato mas abajo.
+    particle-field.ts   Escena Three.js. La unica carga pesada.
+    tech-sphere.ts      Esfera en CSS 3D, no WebGL.
+    pointer-effects.ts  Inclinacion de tarjetas.
+    ambient.ts          Rejilla reactiva, contadores, profundidad de foto.
   pages/
     index.astro         -> /      (espanol, idioma por defecto)
     en/index.astro      -> /en/   (ingles)
+    proyectos/          -> /proyectos/ y /proyectos/[slug]/
+    en/projects/        -> /en/projects/ y /en/projects/[slug]/
+    404.astro
   styles/global.css     Sistema de diseno completo en tres capas.
+public/
+  og-default.png        Imagen al compartir el enlace. 1200x630, estatica.
+                        Se hizo a mano: si cambia el matiz de marca o el
+                        nombre, hay que rehacerla o quedara desincronizada.
 docs/
   requirements.md       Que construimos y para quien.
   design-system.md      Criterio de uso del sistema visual.
+  deploy.md             Configuracion de Vercel y cabeceras.
+  perfil.md             Datos profesionales extraidos del CV.
   adr/                  Decisiones tecnicas y alternativas descartadas.
 ```
+
+### Un proyecto son dos ficheros unidos por `translationKey`
+
+Cada idioma tiene su **propio slug** en la URL: `/proyectos/gestion-gimnasio/`
+y `/en/projects/gym-management/`. Una URL a medio traducir delata el sitio
+entero, y las URLs localizadas posicionan mejor en cada mercado.
+
+`translationKey` es lo que permite saber que esos dos ficheros son la misma
+pagina. `getStaticPaths` lo resuelve en build para pasarle `altPath` al
+layout: sin el, el conmutador de idioma caeria en la portada en lugar del
+mismo proyecto, y el `hreflang` emparejaria URLs equivocadas.
+
+**Ninguna URL se escribe a mano.** Salen de `path()`, `projectUrl()` y
+`workIndexUrl()`. Los segmentos estan traducidos (`routes` en `i18n/utils.ts`)
+y `vercel.json` fija `trailingSlash: true`; una ruta literal se salta las dos
+cosas y provoca una redireccion doble.
+
+**Toda consulta a la coleccion vive en `lib/projects.ts`**, nunca en un
+componente: asi un cambio en el criterio de orden se hace en un sitio y las
+paginas solo pintan lo que reciben. Ojo con una diferencia deliberada entre
+entornos: `draft` solo se filtra en produccion, para poder ver los borradores
+mientras se escriben.
+
+### Contrato de los scripts de cliente
+
+Un efecto interactivo se parte en dos: el `.astro` lleva el marcado y un
+`<script>` breve que arranca; la logica vive en `src/scripts/*.ts` y entra por
+`import()` dinamico si es pesada.
+
+Ese script **debe** registrar `astro:before-swap` para destruir y
+`astro:after-swap` para volver a montar. Con view transitions el `<body>` se
+reemplaza en cada navegacion: lo que no se libera deja escuchas colgando de
+nodos muertos y, en el caso del campo de particulas, la GPU trabajando para
+un canvas que ya no existe. Por eso cada modulo de `src/scripts/` exporta su
+pareja `init`/`destroy`.
 
 ## Presupuesto de rendimiento
 
@@ -179,9 +247,9 @@ importa de verdad, que es lo que bloquea el primer pintado.
 
 | Metrica            | Presupuesto | Actual     |
 | ------------------ | ----------- | ---------- |
-| JS inicial (gzip)  | < 30 KB     | **6.7 KB** |
-| JS diferido (gzip) | < 150 KB    | **128 KB** |
-| CSS (gzip)         | < 15 KB     | **9.5 KB** |
+| JS inicial (gzip)  | < 30 KB     | **6.8 KB** |
+| JS diferido (gzip) | < 150 KB    | **127 KB** |
+| CSS (gzip)         | < 15 KB     | **9.4 KB** |
 
 Las dos secciones nuevas (Trayectoria y Servicios) no anaden ni un byte de
 JavaScript: la linea que se dibuja al bajar es `animation-timeline: view()`,
@@ -191,16 +259,19 @@ no un IntersectionObserver.
 dentro de `requestIdleCallback` y no debe aparecer nunca en el HTML inicial
 ni con `modulepreload`. Comprobarlo asi tras tocar la escena:
 
-```powershell
-Select-String dist\index.html -Pattern 'modulepreload|particle-field\.'
+```bash
+grep -nE 'modulepreload|particle-field\.' dist/index.html
 ```
 
-Solo debe salir el atributo `data-particle-field` del canvas.
+No debe salir nada. El atributo `data-particle-field` del canvas no lleva
+punto, asi que no casa con el patron.
 
-Comprobar tras cualquier cambio que anada interactividad:
+Comprobar tras cualquier cambio que anada interactividad. **Se mide en gzip**,
+que es lo que viaja por la red y en lo que esta expresado el presupuesto; el
+tamano en disco es casi cuatro veces mayor y no significa nada:
 
-```powershell
-Get-ChildItem dist -Recurse -Filter *.js | Select-Object Name, Length
+```bash
+for f in $(find dist -name '*.js'); do echo "$f $(gzip -c $f | wc -c)"; done
 ```
 
 ## Trampas conocidas
@@ -248,10 +319,6 @@ Descubiertas durante el montaje. Evitan repetir depuracion:
   VALOR, no el nombre de otra variable. `text-(--brand-light,--color-text)`
   generaba un color invalido. Las variables de marca llevan valor por
   defecto en CSS y las utilidades se escriben sin reserva.
-- **Playwright se cuelga con elementos animados.** `scrollIntoViewIfNeeded`
-  y demas esperas de "actionability" aguardan a que el elemento este quieto;
-  la esfera gira sin parar y nunca lo esta. Usar `page.evaluate` con
-  `scrollIntoView({ behavior: 'instant' })`.
 - **Nunca usar la forma abreviada `animation:` junto a `animation-timeline`.**
   Lightning CSS (el minificador de Tailwind 4) pliega estas dos lineas
 
@@ -277,8 +344,8 @@ Descubiertas durante el montaje. Evitan repetir depuracion:
 
   Para comprobarlo tras tocar `global.css`:
 
-  ```powershell
-  Select-String dist\_astro\*.css -Pattern 'animation:[^;}]*view\(\)'
+  ```bash
+  grep -o 'animation:[^;}]*view()' dist/_astro/*.css
   ```
 
   No debe salir nada.

@@ -1,14 +1,17 @@
 # Portafolio personal
 
 Sitio personal bilingue (espanol / ingles) construido con Astro y Tailwind CSS.
-Estatico, con 5.4 KB de JavaScript comprimido en total.
+Estatico, con 6.8 KB de JavaScript comprimido bloqueando el primer pintado.
+El campo de particulas WebGL pesa 127 KB mas, pero entra despues y solo si el
+visitante no ha pedido menos movimiento.
 
 **En vivo:** [pumamz.vercel.app](https://pumamz.vercel.app) ·
 [version en ingles](https://pumamz.vercel.app/en/)
 
-> **Estado:** en construccion. Infraestructura, despliegue y contenido de los
-> proyectos listos. Faltan las secciones de proyectos, sobre mi, stack y
-> contacto. Ver [pendientes](./docs/requirements.md#7-pendiente-de-definir).
+> **Estado:** las ocho secciones de la portada, el indice de proyectos y las
+> paginas de detalle estan construidas en los dos idiomas. Lo que falta es
+> contenido: numeros de impacto en los casos de estudio, enlaces a repositorio
+> y el CV en PDF. Ver [pendientes](./docs/requirements.md#7-pendiente-de-definir).
 
 ## Requisitos
 
@@ -85,6 +88,11 @@ Todo el color sale de cuatro variables en
 El ultimo numero es el matiz (0-360); **15 es rojo vino**. Cambiarlo en las
 cuatro lineas reidentifica el sitio entero, en tema claro y oscuro, sin tocar
 ningun componente.
+
+La unica pieza que no sigue esa variable es
+[`public/og-default.png`](./public/og-default.png), la imagen que se ve al
+compartir el enlace: es un PNG estatico de 1200x630 con el acento ya
+rasterizado. Si cambias el matiz, hay que rehacerla.
 
 ## Documentacion
 
