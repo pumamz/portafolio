@@ -550,12 +550,15 @@
    modo que la pagina parece tener una estructura debajo en lugar de un
    fondo plano. */
 @utility spotlight {
-  --grid-x: 50%;
-  --grid-y: 40%;
-  --grid-power: 0;
+  /* OJO: aqui NO se declaran --grid-x / --grid-y / --grid-power.
+     El script las escribe en la <section> que lleva `data-reactive-grid`,
+     y esta capa es un HIJO. Una propiedad personalizada declarada en el
+     hijo gana a la heredada del padre, asi que declararla aqui congelaba
+     el foco en el centro para siempre. El valor por defecto va en el
+     propio var(), que es donde no estorba. */
   background-image:
     radial-gradient(
-      26rem circle at var(--grid-x) var(--grid-y),
+      26rem circle at var(--grid-x, 50%) var(--grid-y, 40%),
       color-mix(in oklch, var(--accent) 28%, transparent),
       transparent 70%
     ),
@@ -565,11 +568,11 @@
     100% 100%,
     64px 64px,
     64px 64px;
-  opacity: calc(0.28 + var(--grid-power) * 0.42);
+  opacity: calc(0.28 + var(--grid-power, 0) * 0.42);
   mask-image: radial-gradient(
-    30rem circle at var(--grid-x) var(--grid-y),
+    30rem circle at var(--grid-x, 50%) var(--grid-y, 40%),
     black,
-    transparent calc(72% - var(--grid-power) * 12%)
+    transparent calc(72% - var(--grid-power, 0) * 12%)
   );
   transition: opacity 700ms var(--ease-fluid);
 }
@@ -605,136 +608,29 @@
   }
 }
 
-/* El nombre del hero SE CONVIERTE en la firma del carril.
+/* ============================================================
+   TRANSFORMACION DEL HERO EN EL CARRIL
 
-   No son dos elementos, uno que se va y otro que llega: es el mismo
-   nodo, fijado a la ventana, que encoge y viaja hasta el hueco del
-   carril conforme se desplaza la pagina. Por eso se lee como una
-   transformacion y no como un relevo.
+   `hero-morph.ts` pone data-morph="on" en <html> cuando va a hacerse
+   cargo, y escribe --morph-p con el avance del viaje (0 a 1). Todo lo
+   de aqui depende de esas dos cosas, asi que sin el script no se aplica
+   NADA: el carril se ve entero desde el primer momento, que es el
+   comportamiento correcto cuando no hay transformacion que esperar.
+   ============================================================ */
 
-   ---------------------------------------------------------------
-   LOS CINCO NUMEROS QUE HAY QUE AFINAR MIRANDO LA PANTALLA.
-   Estan todos aqui a proposito: no hay ni uno repartido por los
-   componentes. Si el nombre no aterriza donde debe, se tocan estos.
-
-     --morph-left      donde arranca en horizontal (padding del hero)
-     --morph-bottom    a que altura del borde inferior arranca
-     --morph-rail-left donde aterriza (padding del carril)
-     --morph-rail-top  a que altura del borde superior aterriza
-     --morph-scale     cuanto encoge; es el cociente entre el cuerpo
-                       final y el de partida
-   ---------------------------------------------------------------
-
-   El cociente de escala solo se mantiene constante si los dos cuerpos
-   estan en la misma unidad. El del hero esta en vw; por eso la firma del
-   carril tambien, y no en rem. */
-@utility name-morph {
-  --morph-left: 2.5rem;
-  --morph-bottom: 7.5rem;
-  --morph-rail-left: 1.75rem;
-  --morph-rail-top: 3.1rem;
-  --morph-scale: 0.108;
-
-  @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: scroll()) {
-      position: fixed;
-      left: var(--morph-left);
-      bottom: var(--morph-bottom);
-      /* Por encima del carril (z-40), que es donde va a aterrizar. */
-      z-index: 41;
-      margin: 0;
-      transform-origin: left bottom;
-      animation-name: name-to-rail;
-      animation-duration: auto;
-      animation-timing-function: linear;
-      animation-fill-mode: both;
-      animation-timeline: scroll(root block);
-      animation-range: 5vh 70vh;
-    }
-  }
+/* Las parejas del carril son reglas de medir, no contenido: el script
+   necesita su caja para saber adonde volar. `visibility` y no `display`
+   justamente por eso, porque tienen que seguir ocupando su sitio. Lo que
+   se ve ahi al final del viaje son las piezas del hero aterrizadas. */
+[data-morph='on'] [data-morph-to] {
+  visibility: hidden;
 }
 
-@keyframes name-to-rail {
-  from {
-    transform: translate(0, 0) scale(1);
-  }
-  to {
-    /* El borde inferior del bloque esta a (100vh - morph-bottom) del alto
-       de la ventana; tiene que acabar a morph-rail-top. De ahi la resta. */
-    transform: translate(
-        calc(var(--morph-rail-left) - var(--morph-left)),
-        calc(var(--morph-rail-top) + var(--morph-bottom) - 100vh)
-      )
-      scale(var(--morph-scale));
-  }
-}
-
-/* Hueco que deja el nombre al fijarse a la ventana.
-
-   Al sacarlo del flujo, la barra de enlaces de abajo subiria de golpe. El
-   hueco solo existe cuando existe la transformacion, asi que vive dentro
-   del mismo @supports. La altura es el cuerpo por la interlinea de
-   `poster`; si se cambia una, hay que cambiar la otra. */
-@utility name-slot {
-  @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: scroll()) {
-      height: calc(clamp(3rem, 13vw, 13rem) * 0.86);
-    }
-  }
-}
-
-/* La firma propia del carril se esconde cuando el nombre del hero va a
-   ocupar su sitio. Sin esto se verian las dos, una encima de otra. */
-@utility rail-wordmark {
-  @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: scroll()) {
-      visibility: hidden;
-    }
-  }
-}
-
-/* El carril fijo nace del hero.
-
-   Mientras se ve la primera pantalla la navegacion vive dentro del hero.
-   Conforme esa pantalla sale, el carril entra por la izquierda con la
-   misma lista y recoge el testigo. No es decoracion: explica de donde
-   viene ese elemento que antes no estaba.
-
-   ESTADO POR DEFECTO: VISIBLE. La animacion solo existe dentro del
-   @supports. Donde no hay soporte para animaciones ligadas al scroll
-   (Safari y Firefox a dia de hoy) el carril esta puesto desde el
-   principio, que es feo pero navegable. Al reves —ocultarlo por defecto y
-   confiar en que la animacion lo traiga— dejaria a esos navegadores sin
-   navegacion en toda la pagina.
-
-   El rango va en unidades de ventana y no en porcentaje del documento:
-   el carril tiene que entrar cuando se acaba el hero, que mide una
-   pantalla, no cuando se lleve un tanto por ciento del scroll total (que
-   depende de cuanto contenido haya debajo). */
-@utility rail-reveal {
-  @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: scroll()) {
-      animation-name: rail-in;
-      animation-duration: auto;
-      animation-timing-function: linear;
-      animation-fill-mode: both;
-      animation-timeline: scroll(root block);
-      animation-range: 35vh 80vh;
-    }
-  }
-}
-
-@keyframes rail-in {
-  from {
-    opacity: 0;
-    /* Desplazado fuera de pantalla, no solo transparente: asi no
-       intercepta clics mientras todavia no se ve. */
-    transform: translateX(-100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+/* El panel del carril y lo que no vuela aparecen al ritmo del viaje. Sin
+   esto habria una columna opaca partiendo la pantalla durante el hero. */
+[data-morph='on'] [data-rail-panel],
+[data-morph='on'] [data-rail-late] {
+  opacity: var(--morph-p, 1);
 }
 
 /* Barra de progreso de lectura, anclada al scroll del documento. */
@@ -834,15 +730,16 @@
    reflujo: solo cambia el centro de un gradiente.
    ============================================================ */
 @utility reactive-grid {
-  --grid-x: 50%;
-  --grid-y: 50%;
-  --grid-power: 0;
-  opacity: calc(0.03 + var(--grid-power) * 0.05);
+  /* Mismo cuidado que en `spotlight`: las variables las escribe el script
+     en la seccion padre, asi que declararlas aqui las congelaria. Estuvo
+     asi y la rejilla nunca siguio al puntero; el valor por defecto va
+     dentro del var(). */
+  opacity: calc(0.03 + var(--grid-power, 0) * 0.05);
   mask-image:
     radial-gradient(
-      22rem circle at var(--grid-x) var(--grid-y),
+      22rem circle at var(--grid-x, 50%) var(--grid-y, 50%),
       black,
-      transparent calc(70% - var(--grid-power) * 20%)
+      transparent calc(70% - var(--grid-power, 0) * 20%)
     ),
     radial-gradient(ellipse at center, black, transparent 75%);
   mask-composite: add;

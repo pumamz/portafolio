@@ -1,9 +1,11 @@
 ---
+import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import { getLangFromUrl, useTranslations, path } from '../i18n/utils';
 import { site } from '../config/site';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 import ThemeToggle from './ThemeToggle.astro';
+import photo from '../assets/daniel.png';
 
 interface Props {
   altPath?: string;
@@ -18,16 +20,22 @@ const home = path(lang);
 /**
  * Carril de identidad fijo. Sustituye a la cabecera flotante.
  *
- * Por que una columna y no una barra: una barra horizontal solo da para
- * el nombre y cinco enlaces, y obliga a elegir entre navegacion e
- * identidad. Una columna tiene sitio para las dos cosas y, al quedarse
- * fija, el nombre, el rol y el modo de contacto siguen en pantalla
- * mientras se lee cualquier seccion. En un portafolio eso importa: quien
- * decide escribirte suele hacerlo a mitad de un caso de estudio, no al
- * final de la pagina.
+ * ATENCION AL DOBLE PAPEL DE ESTE COMPONENTE.
  *
- * El indice SI va numerado. Aqui el numero informa del orden en que
- * aparecen las secciones al bajar; sobre cada titulo no decia nada.
+ * Todo lo marcado con `data-morph-to` es una REGLA DE MEDIR, no algo que
+ * se vea. El script `hero-morph.ts` lee su posicion y su tamano para
+ * saber adonde tiene que volar la pieza equivalente del hero, y el CSS lo
+ * deja invisible mientras esa transformacion esta activa. Lo que el
+ * visitante ve ahi al final del viaje son los elementos del hero, ya
+ * aterrizados: los mismos nodos y los mismos enlaces.
+ *
+ * Por eso el contenido tiene que ser IDENTICO al del hero. Si aqui pone
+ * "Proyectos" y en el hero "Ver proyectos", el texto cambia a mitad del
+ * vuelo y se lee como un fallo, no como una transformacion.
+ *
+ * Si el script no corre —sin JavaScript, en movil, o con
+ * `prefers-reduced-motion`— nada de esto se oculta y el carril funciona
+ * como un carril normal.
  */
 const nav = [
   { href: `${home}#work`, label: t('nav.work') },
@@ -47,78 +55,95 @@ const lastName = rest.join(' ');
 ---
 
 {/* ---------------- Escritorio: columna fija ---------------- */}
-<aside
-  class="rail-reveal border-border/70 bg-bg fixed inset-y-0 left-0 z-40 hidden w-64 flex-col gap-8 overflow-y-auto border-r px-7 py-8 lg:flex"
-  aria-label={t('hero.identity')}
->
+<aside class="fixed inset-y-0 left-0 z-20 hidden w-64 lg:block" aria-label={t('hero.identity')}>
   {
-    /* La firma va en vw y no en rem a proposito: el nombre del hero
-      aterriza aqui encogido por un factor fijo, y ese factor solo se
-      mantiene si el cuerpo de salida y el de llegada estan en la misma
-      unidad. `rail-wordmark` la esconde cuando esa transformacion existe,
-      para que no se vean las dos superpuestas. */
+    /* El panel va aparte del contenido para poder desvanecerlo por su
+      cuenta: durante el hero no debe haber una columna opaca partiendo la
+      pantalla. Su opacidad la marca --morph-p, que escribe el script. */
   }
-  <a href={home} class="group block">
-    <span class="poster rail-wordmark block text-[clamp(1rem,1.4vw,1.6rem)]" aria-hidden="true">
-      {firstName}<span class="text-accent ml-[0.26em]">{lastName}</span>
-    </span>
-    <span class="sr-only">{site.name}</span>
-    <span class="text-text-muted mt-1.5 block text-xs">{t('hero.role')}</span>
-  </a>
+  <div aria-hidden="true" data-rail-panel class="bg-bg border-border/70 absolute inset-0 border-r">
+  </div>
 
-  <nav aria-label={t('hero.index')} class="border-border/70 border-t pt-7">
-    <ul class="flex flex-col gap-3">
+  <div class="relative flex h-full flex-col gap-8 overflow-y-auto px-7 py-8">
+    <a href={home} class="block">
       {
-        nav.map((item, i) => (
-          <li>
-            <a href={item.href} class="group flex items-baseline gap-3 text-sm">
-              <span class="text-text-faint group-hover:text-accent w-5 shrink-0 font-mono text-[0.6875rem] tabular-nums transition-colors duration-300">
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              <span class="text-text-muted group-hover:text-text transition-colors duration-300">
-                {item.label}
-              </span>
-            </a>
-          </li>
-        ))
+        /* En vw y no en rem: el nombre del hero aterriza aqui, y el script
+          calcula la escala como cociente de anchuras. Si las dos medidas
+          no crecen igual con la ventana, el aterrizaje baila. */
       }
-    </ul>
-  </nav>
+      <span class="poster block text-[clamp(1rem,1.4vw,1.6rem)]" data-morph-to="name">
+        {firstName}<span class="text-accent ml-[0.26em]">{lastName}</span>
+      </span>
+      <span class="sr-only">{site.name}</span>
+      <span data-rail-late class="text-text-muted mt-1.5 block text-xs">{t('hero.role')}</span>
+    </a>
 
-  {/* mt-auto empuja el pie del carril al fondo de la ventana. */}
-  <div class="border-border/70 mt-auto flex flex-col gap-5 border-t pt-7">
-    <p class="text-text-faint flex items-center gap-2 text-xs">
-      <Icon name="lucide:map-pin" class="size-3.5 shrink-0" aria-hidden="true" />
-      {site.location[lang]}
-    </p>
-
-    {
-      socials.length > 0 && (
-        <ul class="flex flex-col gap-2.5">
-          {socials.map((s) => (
+    <nav aria-label={t('hero.index')} class="border-border/70 border-t pt-7">
+      <ul class="flex flex-col gap-3">
+        {
+          nav.map((item, i) => (
             <li>
               <a
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-text-muted hover:text-accent group inline-flex items-center gap-1.5 text-sm transition-colors duration-300"
+                href={item.href}
+                data-morph-to={`nav-${i}`}
+                class="group flex items-baseline gap-3 text-sm"
               >
-                {s.label}
-                <Icon
-                  name="lucide:arrow-up-right"
-                  class="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0"
-                  aria-hidden="true"
-                />
+                <span class="text-text-faint w-5 shrink-0 font-mono text-[0.6875rem] tabular-nums">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span class="text-text-muted">{item.label}</span>
               </a>
             </li>
-          ))}
-        </ul>
-      )
-    }
+          ))
+        }
+      </ul>
+    </nav>
 
-    <div class="flex items-center gap-2">
-      <LanguageSwitcher altPath={altPath} />
-      <ThemeToggle />
+    {/* mt-auto empuja el pie del carril al fondo de la ventana. */}
+    <div class="border-border/70 mt-auto flex flex-col gap-5 border-t pt-7">
+      <div data-morph-to="photo" class="w-28">
+        <div class="ring-outline relative overflow-hidden rounded-lg">
+          <Image
+            src={photo}
+            alt=""
+            width={224}
+            densities={[1, 2]}
+            loading="eager"
+            class="aspect-[4/5] w-full object-cover"
+          />
+        </div>
+      </div>
+
+      <p data-rail-late class="text-text-faint flex items-center gap-2 text-xs">
+        <Icon name="lucide:map-pin" class="size-3.5 shrink-0" aria-hidden="true" />
+        {site.location[lang]}
+      </p>
+
+      {
+        socials.length > 0 && (
+          <ul class="flex flex-col gap-2.5">
+            {socials.map((s, i) => (
+              <li>
+                <a
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-morph-to={`social-${i}`}
+                  class="text-text-muted inline-flex items-center gap-1.5 font-mono text-xs tracking-widest uppercase"
+                >
+                  {s.label}
+                  <Icon name="lucide:arrow-up-right" class="size-3.5" aria-hidden="true" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      <div data-rail-late class="flex items-center gap-2">
+        <LanguageSwitcher altPath={altPath} />
+        <ThemeToggle />
+      </div>
     </div>
   </div>
 </aside>
@@ -128,17 +153,15 @@ const lastName = rest.join(' ');
 
     Por debajo de lg no cabe una columna fija sin comerse la mitad de la
     pantalla, asi que el carril se pliega en una tira con el nombre y un
-    desplegable. Sigue sin JavaScript de framework: <details> nativo.
-    Coste asumido: no se cierra con Escape ni al pulsar un enlace. */
+    desplegable. Aqui no hay transformacion ninguna: el hero no tiene
+    sitio del que salir. Sigue sin JavaScript de framework: <details>
+    nativo. Coste asumido: no se cierra con Escape ni al pulsar un
+    enlace. */
 }
-<header
-  class="border-border/70 bg-bg fixed inset-x-0 top-0 z-40 border-b lg:hidden"
-  aria-label={t('hero.identity')}
->
+<header class="border-border/70 bg-bg fixed inset-x-0 top-0 z-40 border-b lg:hidden">
   <div class="flex items-center justify-between gap-4 px-5 py-3">
-    <a href={home} class="font-display text-base" style="font-stretch: 80%; font-weight: 800">
-      {firstName}{' '}
-      <span class="text-accent">{lastName}</span>
+    <a href={home} class="poster text-lg">
+      {firstName}<span class="text-accent ml-[0.26em]">{lastName}</span>
     </a>
 
     <div class="flex items-center gap-2">

@@ -1,9 +1,10 @@
 ---
 /**
- * Arranque de las interacciones de puntero.
+ * Arranque de los efectos de cliente.
  *
- * No renderiza nada: solo engancha los efectos que se aplican a elementos
- * que ya existen (inclinacion de tarjetas y capa ambiental).
+ * No renderiza nada: solo engancha comportamientos sobre elementos que ya
+ * existen (inclinacion de tarjetas, capa ambiental y la transformacion
+ * del hero en el carril lateral).
  *
  * Dos efectos se retiraron a peticion del autor, y conviene recordar por
  * que: el cursor personalizado obligaba a acertar en todos los casos
@@ -16,15 +17,20 @@
 <script>
   import { initPointerEffects, destroyPointerEffects } from '../scripts/pointer-effects';
   import { initAmbient, destroyAmbient } from '../scripts/ambient';
+  import { initHeroMorph, destroyHeroMorph } from '../scripts/hero-morph';
 
   const start = () => {
     initPointerEffects();
     initAmbient();
+    // Despues de las otras dos: mide cajas, y conviene que el resto ya
+    // haya hecho lo suyo antes de tomar medidas.
+    initHeroMorph();
   };
 
   const stop = () => {
     destroyPointerEffects();
     destroyAmbient();
+    destroyHeroMorph();
   };
 
   start();
