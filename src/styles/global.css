@@ -84,6 +84,12 @@
   --accent-surface: var(--a-soft);
 
   --focus-ring: var(--a-deep);
+
+  /* Un cielo estrellado pertenece a una noche. Sobre el blanco del tema
+     claro los mismos puntos se leen como suciedad en la pantalla, asi que
+     ahi el campo baja a una insinuacion. No es un color, pero vive con
+     los tokens porque es una decision de tema, no del componente. */
+  --stars-opacity: 0.22;
 }
 
 .dark {
@@ -106,6 +112,7 @@
   --accent-surface: var(--a-shadow);
 
   --focus-ring: var(--a-base);
+  --stars-opacity: 0.8;
 }
 
 /* ============================================================
@@ -657,6 +664,32 @@
    tenga cuerpo. */
 [data-morph='on'] [data-rail-late] {
   opacity: clamp(0, calc((var(--morph-p, 1) - 0.68) / 0.32), 1);
+}
+
+/* EL ALTO QUE BLOQUEA SOLO EXISTE SI HAY TRANSFORMACION.
+
+   El contenedor mide lo que mide el hero hasta que el script confirma que
+   se hace cargo. Si el alto estuviera puesto en el marcado, sin
+   JavaScript —o con `prefers-reduced-motion`, o en un navegador donde el
+   script falle— quedaria pantalla y media de vacio que hay que atravesar
+   sin que ocurra nada. Una zona muerta es peor que no tener el efecto. */
+@media (width >= 64rem) {
+  [data-morph='on'] [data-morph-pin] {
+    height: 190vh;
+  }
+}
+
+/* Lo que ENTRA mientras el resto se va.
+
+   Va justo al reves que `data-hero-fade`: aparece conforme avanza el
+   viaje, para que la mitad derecha no se quede vacia mientras las piezas
+   migran al carril. Entra en el tramo central del recorrido —ni de golpe
+   al primer pixel ni al final, cuando ya no daria tiempo a leerlo— y sube
+   un poco al hacerlo, que es lo que lo separa de un simple fundido. */
+[data-morph='on'] [data-hero-reveal] {
+  --reveal: clamp(0, calc((var(--morph-p, 1) - 0.2) / 0.45), 1);
+  opacity: var(--reveal);
+  transform: translateY(calc((1 - var(--reveal)) * 2.5rem));
 }
 
 /* La salida. En el ultimo cuarto del recorrido el fondo del hero se

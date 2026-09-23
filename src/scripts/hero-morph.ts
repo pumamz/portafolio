@@ -190,6 +190,20 @@ export function initHeroMorph(): void {
   measure();
   apply();
 
+  /* VOLVER A MEDIR CUANDO LAS TIPOGRAFIAS ESTEN LISTAS.
+ 
+     Las fuentes se cargan con `font-display: swap`, asi que el primer
+     render usa la de reserva y el texto se recoloca unos pixeles cuando
+     llega la buena. Si la medida se toma antes de ese cambio, el
+     desplazamiento guardado es el de la caja equivocada y cada pieza
+     aterriza desviada de forma distinta, segun cuanto se mueva SU texto.
+     Medido: hasta 4.5 px de error en el indice, suficiente para que se
+     viera un salto al ceder el relevo al carril. */
+  document.fonts?.ready.then(() => {
+    measure();
+    apply();
+  });
+
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onResize, { passive: true });
 

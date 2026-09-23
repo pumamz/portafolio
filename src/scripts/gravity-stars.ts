@@ -108,10 +108,15 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
   let glowSize = 0;
 
   let starColor = '#8aa0c0';
+  let alpha = 0.8;
 
   function readColors() {
     const styles = getComputedStyle(document.documentElement);
     starColor = cssColor(ctx!, styles.getPropertyValue('--text-faint'), '#8aa0c0');
+    // La opacidad sale del tema y no de las opciones: en tema claro el
+    // mismo campo de estrellas se lee como suciedad sobre el blanco.
+    const themed = parseFloat(styles.getPropertyValue('--stars-opacity'));
+    alpha = Number.isFinite(themed) ? themed : o.starsOpacity;
   }
 
   function buildGlow() {
@@ -184,7 +189,7 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
 
   function draw() {
     ctx!.clearRect(0, 0, width, height);
-    ctx!.globalAlpha = o.starsOpacity;
+    ctx!.globalAlpha = alpha;
 
     for (const s of stars) {
       if (!still) {
@@ -278,7 +283,9 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
   const onThemeChange = () => {
     readColors();
     buildGlow();
-    if (still) draw();
+    // Tambien en marcha: el siguiente fotograma ya usara el color nuevo,
+    // pero si el bucle esta parado hay que forzar el repintado.
+    if (still || !running) draw();
   };
 
   resize();

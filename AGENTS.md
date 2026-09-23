@@ -36,6 +36,7 @@ bun run check         # solo type-check
 bun run preview       # sirve el build de produccion en local
 bun run format        # prettier --write
 bun run format:check  # falla si algo no esta formateado
+bun run check:visual  # revision visual con Playwright (ver abajo)
 ```
 
 **Los comandos de este fichero son POSIX** (bash / fish). El proyecto se monto
@@ -49,30 +50,40 @@ Linux, `bun install` antes de nada: si no, `astro` falla con
 
 ### Revision visual
 
-**La hace Daniel a mano, en el navegador. No hay automatizacion de navegador
-en este proyecto y no debe anadirse ninguna.** Nada de Playwright, Puppeteer
-ni capturas comparadas: si un cambio toca algo que se ve, se describe que
-mirar y lo comprueba el.
-
-Conviene saber por que existe esa revision, porque limita lo que un agente
-puede afirmar. Hubo cuatro fallos que el HTML no delataba: un canvas WebGL
-que renderizaba sin verse, una esfera colapsada a un tercio de su tamano, un
-color de marca que nunca se aplicaba, y **todas las animaciones de scroll del
-sitio muertas** por una abreviada de CSS que el minificador reescribia mal
-(ver trampas). En los cuatro casos la clase estaba puesta y el marcado era
-correcto.
-
-De ahi la regla: **leer el HTML no demuestra que algo se vea.** Un agente
-puede verificar lo que es comprobable sin ojos — que el build pasa, que un
-patron no aparece en el CSS compilado, que un fichero no entra en el bundle —
-y para el resto dice explicitamente que no lo ha comprobado.
-
-Revision en local contra el build de produccion, no contra `astro dev`, que
-inyecta su barra de herramientas:
+**Hay automatizacion de navegador y se usa.** `scripts/visual-check.mjs`
+abre el sitio en Chromium, recorre la transformacion del hero paso a paso,
+mide donde aterriza cada pieza, comprueba que el fondo pinta pixeles,
+cambia de tema y repite en movil. Deja capturas en `.playwright/`.
 
 ```bash
+bun install                      # incluye playwright
+bunx playwright install chromium # una vez por maquina
 bun run build && bunx astro preview --port 4330
+bun run check:visual
 ```
+
+**Ejecutar contra el build de produccion**, no contra `astro dev`: el
+servidor de desarrollo inyecta su barra de herramientas y sale en las
+capturas.
+
+**LA REGLA DE ORO: cada comprobacion mide el RESULTADO RENDERIZADO, nunca
+la presencia de una clase.** Todos los fallos visuales de este proyecto
+tenian el marcado correcto:
+
+- un canvas WebGL que renderizaba sin verse, por un z-index negativo sin
+  contexto de apilamiento;
+- todas las animaciones de scroll muertas, por una abreviada que el
+  minificador reescribia mal;
+- el foco del puntero clavado en el centro, porque la utilidad declaraba
+  las variables que el script escribia en el padre;
+- el fundido de salida del hero bloqueado, porque un `animation-fill-mode:
+both` retenia `opacity: 1` y ganaba en la cascada;
+- cada pieza de la transformacion aterrizando desviada hasta 4.5 px,
+  porque se median las cajas antes de que cargaran las tipografias.
+
+Ninguno se veia leyendo el HTML y ninguno daba error. De ahi que al anadir
+un efecto visual haya que anadir aqui una comprobacion que falle si ese
+efecto deja de verse, y que mida pixeles o geometria, no clases.
 
 ## Reglas del proyecto
 

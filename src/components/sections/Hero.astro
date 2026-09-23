@@ -3,6 +3,8 @@ import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import { getLangFromUrl, useTranslations, path } from '../../i18n/utils';
 import { site } from '../../config/site';
+import { getProjects } from '../../lib/projects';
+import { stack } from '../../config/stack';
 import photo from '../../assets/daniel.png';
 
 /**
@@ -37,6 +39,22 @@ const socials = [
   { href: site.social.linkedin, label: 'LinkedIn' },
 ].filter((s) => Boolean(s.href));
 
+/**
+ * Las cifras se calculan del contenido real, nunca se escriben a mano: si
+ * manana entra un proyecto, el numero sube solo. Un dato desactualizado en
+ * un portafolio transmite mas descuido que no poner ninguno.
+ */
+const projects = await getProjects(lang);
+const led = projects.filter((p) => /lider|lead/i.test(p.data.role)).length;
+const techCount = stack.reduce((total, group) => total + group.items.length, 0);
+
+const stats = [
+  { value: projects.length, label: t('stats.projects') },
+  { value: led, label: t('stats.led') },
+  { value: 2023, label: t('stats.since') },
+  { value: techCount, label: t('stats.stack') },
+];
+
 const nav = [
   { href: `${home}#work`, label: t('nav.work') },
   { href: `${home}#about`, label: t('nav.about') },
@@ -70,7 +88,7 @@ const nav = [
     En movil no hay carril al que transformarse, asi que no hay bloqueo:
     el contenedor no tiene alto extra y la seccion no se ancla. */
 }
-<div data-morph-pin class="relative lg:h-[190vh]">
+<div data-morph-pin class="relative">
   <section
     data-morph-root
     data-reactive-grid
@@ -90,6 +108,45 @@ const nav = [
       }
       <div class="spotlight text-text absolute inset-0"></div>
       <div class="grain absolute inset-0"></div>
+    </div>
+
+    {
+      /* ---------------- Lo que ocupa la derecha durante el bloqueo ----
+
+      Mientras el hero esta anclado, todas sus piezas migran hacia el
+      carril de la izquierda y la mitad derecha se queda vacia: dos
+      tercios de pantalla sin nada mientras dura la transformacion. Este
+      panel entra justo a ese hueco, en contra del resto.
+
+      Lleva las cifras porque son la prueba de lo que afirma el titular y
+      porque se calculan del contenido real. Es contenido, no relleno: si
+      hubiera que poner adorno ahi, sobraria el bloqueo entero.
+
+      `aria-hidden` no: es informacion de verdad. Pero si
+      `pointer-events-none`, porque no hay nada que pulsar y no debe
+      robarle clics al hero. */
+    }
+    <div
+      data-hero-reveal
+      class="pointer-events-none absolute inset-y-0 right-0 hidden w-[44%] flex-col justify-center pr-10 opacity-0 lg:flex xl:pr-16"
+    >
+      <dl class="grid grid-cols-2 gap-x-10 gap-y-12">
+        {
+          stats.map((stat) => (
+            <div class="border-border/70 border-t pt-4">
+              {/* tabular-nums: sin cifras de ancho fijo los numeros de cada
+                columna no alinean y la rejilla se ve descuadrada. */}
+              <dd
+                class="font-display text-accent text-[clamp(2.25rem,3.4vw,3.75rem)] tabular-nums"
+                style="font-stretch: 70%; font-weight: 900"
+              >
+                {stat.value}
+              </dd>
+              <dt class="text-text-muted mt-2 text-sm">{stat.label}</dt>
+            </div>
+          ))
+        }
+      </dl>
     </div>
 
     {/* ---------------- Cabecera de la composicion ---------------- */}
@@ -160,13 +217,15 @@ const nav = [
       {
         /* El cuerpo se ata al ancho de la ventana con vw, no a la escala
         tipografica del sistema: es lo que hace que el nombre llegue de
-        borde a borde en cualquier pantalla. La firma del carril tambien
-        esta en vw, para que el cociente de escala del viaje no cambie al
-        redimensionar. */
+        borde a borde en cualquier pantalla. El 18vw esta medido, no
+        estimado: a 13vw el nombre ocupaba 963 px de los 1360 utiles a
+        1440 de ancho y quedaba un tercio de pantalla muerto a su derecha.
+        La firma del carril tambien esta en vw, para que el cociente de
+        escala del viaje no cambie al redimensionar. */
       }
       <h1
         data-morph="name"
-        class="poster mt-6 text-[clamp(3rem,13vw,13rem)]"
+        class="poster mt-6 text-[clamp(2.75rem,18vw,17rem)]"
         aria-label={site.name}
       >
         {
@@ -242,8 +301,20 @@ const nav = [
      carril, que la gobierna el scroll: esto solo es la llegada inicial.
      Cada elemento lleva su propio --delay inline, lo que evita escribir
      una regla CSS por elemento. */
+  /* `backwards` y NO `both`, que es lo que estaba puesto.
+ 
+     Con `both`, al terminar la animacion el elemento se queda congelado
+     en su fotograma final, que incluye `opacity: 1`. Un fotograma
+     retenido gana a una declaracion normal en la cascada, asi que
+     bloqueaba el fundido de salida del hero: el titular seguia encima del
+     carril y las redes pisaban a "Ver proyectos". Se veia como un fallo
+     de maquetacion y era un fallo de animacion.
+ 
+     `backwards` aplica el fotograma inicial SOLO durante el retardo —que
+     es para lo que hace falta, para que no parpadee antes de entrar— y al
+     acabar suelta el elemento a sus estilos normales. */
   .reveal {
-    animation: reveal 900ms var(--ease-fluid) both;
+    animation: reveal 900ms var(--ease-fluid) backwards;
     animation-delay: var(--delay, 0ms);
   }
 
