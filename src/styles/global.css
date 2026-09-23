@@ -102,7 +102,11 @@
 
   --text: var(--n-50);
   --text-muted: var(--n-400);
-  --text-faint: var(--n-500);
+  /* Reasignado, no heredado del tema claro. --n-500 sobre el marino del
+     fondo oscuro da 3.9:1 y no llega a AA para texto normal; --n-400 lo
+     sube a 7.4:1 sobre el fondo y sigue por encima de 4.5:1 sobre la
+     superficie elevada, que es el peor caso donde se usa. */
+  --text-faint: var(--n-400);
   /* Casi negro sobre azul luminoso: contraste 6.8:1, cumple AA.
      Invertido respecto al tema claro, por eso este token existe. */
   --text-on-accent: var(--n-1000);
@@ -288,29 +292,6 @@
 @utility ring-outline {
   box-shadow: inset 0 0 0 1px var(--border-strong);
   transition: box-shadow var(--animate-duration-base) var(--ease-fluid);
-}
-
-@utility ring-outline-subtle {
-  box-shadow: inset 0 0 0 1px var(--border);
-  transition: box-shadow var(--animate-duration-base) var(--ease-fluid);
-}
-
-/* Etiqueta de seccion. Precede a los titulos grandes y da un punto de
-   entrada a la lectura antes del salto de escala tipografico. */
-@utility eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: var(--radius-pill);
-  padding: 0.3125rem 0.75rem;
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  background: color-mix(in oklch, var(--text) 4%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--text) 8%, transparent);
 }
 
 /* ============================================================
@@ -633,6 +614,37 @@
   visibility: hidden;
 }
 
+/* SIN TRANSFORMACION, MANDA EL CARRIL.
+
+   Si el script no se hace cargo —sin JavaScript, con
+   `prefers-reduced-motion`, o al cargar por debajo de lg— el hero y el
+   carril quedaban los dos visibles y los dos tabulables: 31 enlaces en
+   lugar de 24, con el indice y las redes repetidos. Un lector de pantalla
+   recitaba el menu dos veces.
+
+   En ese estado el carril ya es la navegacion completa, asi que las
+   copias que sobran son las del hero. */
+@media (width >= 64rem) {
+  html:not([data-morph='on']) [data-morph],
+  html:not([data-morph='on']) [data-morph-group='hero'] {
+    visibility: hidden;
+  }
+}
+
+/* UN SOLO LANDMARK DE NAVEGACION A LA VEZ.
+
+   El indice existe dos veces, en el hero y en el carril. Ocultar solo sus
+   ENLACES dejaba el otro <nav> presente y con nombre, asi que un lector
+   de pantalla anunciaba dos regiones "Secciones" y una de ellas vacia. Se
+   oculta el <nav> entero, y en cada momento solo hay uno perceptible.
+
+   La visibilidad es heredable y se puede volver a encender en los hijos,
+   que es lo que hacen las reglas del relevo de aqui abajo. */
+[data-morph='on']:not([data-morph-done]) [data-morph-group='rail'],
+[data-morph='on'][data-morph-done] [data-morph-group='hero'] {
+  visibility: hidden;
+}
+
 /* EL RELEVO AL ATERRIZAR.
 
    Cuando el viaje termina, las piezas del hero estan superpuestas al
@@ -663,7 +675,7 @@
    un carril formandose, parecia basura. Ahora espera a que el panel ya
    tenga cuerpo. */
 [data-morph='on'] [data-rail-late] {
-  opacity: clamp(0, calc((var(--morph-p, 1) - 0.68) / 0.32), 1);
+  opacity: clamp(0, calc((var(--morph-p, 1) - 0.62) / 0.38), 1);
 }
 
 /* EL ALTO QUE BLOQUEA SOLO EXISTE SI HAY TRANSFORMACION.
@@ -686,6 +698,14 @@
    migran al carril. Entra en el tramo central del recorrido —ni de golpe
    al primer pixel ni al final, cuando ya no daria tiempo a leerlo— y sube
    un poco al hacerlo, que es lo que lo separa de un simple fundido. */
+/* Sin transformacion no hay viaje que acompanar, asi que el panel se
+   queda puesto: atado solo a [data-morph='on'] quedaba invisible para
+   siempre con `prefers-reduced-motion` y la derecha vacia del todo, que
+   es justo lo que este panel existe para evitar. */
+html:not([data-morph='on']) [data-hero-reveal] {
+  opacity: 1;
+}
+
 [data-morph='on'] [data-hero-reveal] {
   --reveal: clamp(0, calc((var(--morph-p, 1) - 0.2) / 0.45), 1);
   opacity: var(--reveal);
@@ -767,12 +787,6 @@
   }
 }
 
-/* ============================================================
-   PROFUNDIDAD 3D
-   La perspectiva se declara en el contenedor, no en el elemento que
-   rota: solo asi los hijos comparten un mismo punto de fuga y la escena
-   se lee como un espacio coherente en lugar de como piezas sueltas.
-   ============================================================ */
 @utility perspective-container {
   perspective: 1000px;
   perspective-origin: center;
@@ -826,38 +840,6 @@
   transition:
     opacity 600ms var(--ease-fluid),
     mask-image 200ms linear;
-}
-
-/* ============================================================
-   FOTO CON PROFUNDIDAD
-   Dos capas con desplazamientos opuestos. El desfase entre el marco y la
-   imagen que contiene es lo que el ojo interpreta como volumen sobre una
-   fotografia plana.
-   ============================================================ */
-@utility photo-depth {
-  --photo-rx: 0deg;
-  --photo-ry: 0deg;
-  --photo-shift-x: 0px;
-  --photo-shift-y: 0px;
-  --photo-light-x: 50%;
-  --photo-light-y: 50%;
-  transform-style: preserve-3d;
-  transform: perspective(900px) rotateX(var(--photo-rx)) rotateY(var(--photo-ry));
-  transition: transform 500ms var(--ease-fluid);
-}
-
-@utility photo-depth-inner {
-  transform: translate3d(var(--photo-shift-x), var(--photo-shift-y), 0) scale(1.06);
-  transition: transform 500ms var(--ease-fluid);
-}
-
-/* Reflejo que sigue al puntero, como la luz sobre un cristal. */
-@utility photo-depth-sheen {
-  background: radial-gradient(
-    12rem circle at var(--photo-light-x) var(--photo-light-y),
-    color-mix(in oklch, var(--n-0) 22%, transparent),
-    transparent 65%
-  );
 }
 
 /* ============================================================

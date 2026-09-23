@@ -253,18 +253,17 @@ pareja `init`/`destroy`.
 Dos presupuestos separados desde el ADR-0007. Mezclarlos oculta lo unico que
 importa de verdad, que es lo que bloquea el primer pintado.
 
-| Metrica            | Presupuesto | Actual     |
-| ------------------ | ----------- | ---------- |
-| JS inicial (gzip)  | < 30 KB     | **5.6 KB** |
-| JS diferido (gzip) | < 150 KB    | **0 KB**   |
-| CSS (gzip)         | < 15 KB     | **10 KB**  |
+| Metrica           | Presupuesto | Actual     |
+| ----------------- | ----------- | ---------- |
+| JS inicial (gzip) | < 30 KB     | **8.5 KB** |
+| CSS (gzip)        | < 15 KB     | **9.9 KB** |
 
-**Ya no hay JavaScript diferido.** El campo de particulas WebGL se retiro y
-con el los 127 KB de Three.js. El efecto de puntero del hero es ahora un
-foco enmascarado en CSS que reaprovecha el script de la rejilla reactiva,
-que ya existia. Los unicos scripts propios (tema, puntero, contadores) los
-inlinea Astro en el HTML por ser pequenos; el unico fichero .js externo es
-el enrutador de las view transitions.
+**No hay JavaScript diferido.** El campo de particulas WebGL se retiro y
+con el los 127 KB de Three.js; el ADR-0007 queda revertido. Lo que sale
+son DOS ficheros .js externos: el enrutador de las view transitions
+(5.6 KB) y el arranque de `PointerEffects`, que arrastra la rejilla
+reactiva, la transformacion del hero y el campo de estrellas (2.9 KB). El
+resto —el tema, el menu movil— se inlinea en el HTML por ser pequeno.
 
 Las dos secciones nuevas (Trayectoria y Servicios) no anaden ni un byte de
 JavaScript: la linea que se dibuja al bajar es `animation-timeline: view()`,

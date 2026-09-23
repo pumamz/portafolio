@@ -5,6 +5,8 @@ import { getLangFromUrl, useTranslations, path } from '../../i18n/utils';
 import { site } from '../../config/site';
 import { getProjects } from '../../lib/projects';
 import { stack } from '../../config/stack';
+import LanguageSwitcher from '../LanguageSwitcher.astro';
+import ThemeToggle from '../ThemeToggle.astro';
 import photo from '../../assets/daniel.png';
 
 /**
@@ -25,6 +27,13 @@ import photo from '../../assets/daniel.png';
  * cualquier contenido normal. Hacer viajar dos textos distintos se lee
  * como un fallo de render, no como una transformacion.
  */
+interface Props {
+  /** Ruta equivalente en el otro idioma, para el conmutador del hero. */
+  altPath?: string;
+}
+
+const { altPath } = Astro.props;
+
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const home = path(lang);
@@ -122,15 +131,20 @@ const nav = [
       porque se calculan del contenido real. Es contenido, no relleno: si
       hubiera que poner adorno ahi, sobraria el bloqueo entero.
 
+      Se ancla al borde del carril y se CENTRA en lo que queda, en lugar de
+      pegarse al borde derecho con un porcentaje. Pegado a la derecha, el
+      hueco entre carril y cifras crecia con el ancho de pantalla: a 2560
+      quedaba una franja central muerta.
+
       `aria-hidden` no: es informacion de verdad. Pero si
       `pointer-events-none`, porque no hay nada que pulsar y no debe
       robarle clics al hero. */
     }
     <div
       data-hero-reveal
-      class="pointer-events-none absolute inset-y-0 right-0 hidden w-[44%] flex-col justify-center pr-10 opacity-0 lg:flex xl:pr-16"
+      class="pointer-events-none absolute inset-y-0 right-0 left-64 hidden items-center justify-center px-10 opacity-0 lg:flex"
     >
-      <dl class="grid grid-cols-2 gap-x-10 gap-y-12">
+      <dl class="grid w-full max-w-3xl grid-cols-2 gap-x-12 gap-y-12">
         {
           stats.map((stat) => (
             <div class="border-border/70 border-t pt-4">
@@ -165,7 +179,7 @@ const nav = [
         /* El indice del hero ES el del carril: estos mismos enlaces vuelan
         hasta alla. Oculto por debajo de lg, donde manda la tira superior. */
       }
-      <nav aria-label={t('hero.index')} class="hidden lg:block">
+      <nav data-morph-group="hero" aria-label={t('hero.index')} class="hidden lg:block">
         <ul class="flex flex-wrap items-baseline gap-x-7 gap-y-2">
           {
             nav.map((item, i) => (
@@ -173,7 +187,7 @@ const nav = [
                 <a
                   href={item.href}
                   data-morph={`nav-${i}`}
-                  class="group inline-flex items-baseline gap-3 text-sm"
+                  class="group relative z-20 inline-flex items-baseline gap-3 text-sm"
                 >
                   <span class="text-text-faint group-hover:text-accent w-5 shrink-0 font-mono text-[0.6875rem] tabular-nums transition-colors duration-300">
                     {String(i + 1).padStart(2, '0')}
@@ -225,7 +239,7 @@ const nav = [
       }
       <h1
         data-morph="name"
-        class="poster mt-6 text-[clamp(2.75rem,18vw,17rem)]"
+        class="poster relative z-10 mt-6 text-[clamp(2rem,14vw,7rem)] lg:text-[17.5vw]"
         aria-label={site.name}
       >
         {
@@ -247,6 +261,24 @@ const nav = [
       <div data-hero-fade aria-hidden="true" class="border-border/70 mt-8 border-t"></div>
 
       <div class="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 pt-6">
+        {
+          /* Conmutadores propios del hero.
+
+            Los del carril estan a opacidad cero durante toda la primera
+            pantalla, asi que en escritorio no habia NINGUNO utilizable
+            hasta terminar el bloqueo. Estos se apagan justo cuando los del
+            carril se encienden, de modo que siempre hay exactamente un
+            juego usable y nunca dos. */
+        }
+        <div
+          data-hero-fade
+          data-morph-group="hero"
+          class="order-last flex items-center gap-2 lg:order-none"
+        >
+          <LanguageSwitcher altPath={altPath} />
+          <ThemeToggle />
+        </div>
+
         <a
           href={`${home}#work`}
           data-hero-fade
@@ -270,7 +302,7 @@ const nav = [
                   target="_blank"
                   rel="noopener noreferrer"
                   data-morph={`social-${i}`}
-                  class="text-text-muted hover:text-accent group inline-flex items-center gap-1.5 font-mono text-xs tracking-widest uppercase transition-colors duration-300"
+                  class="text-text-muted hover:text-accent group relative z-20 inline-flex items-center gap-1.5 font-mono text-xs tracking-widest uppercase transition-colors duration-300"
                 >
                   {s.label}
                   <Icon

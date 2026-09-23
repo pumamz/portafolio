@@ -131,8 +131,13 @@ async function run() {
   const travel = vh * 1.9 - vh;
   for (const [i, frac] of [0.3, 0.6, 0.9].entries()) {
     await scrollTo(page, travel * frac);
+    /* --morph-p NO esta en <html>: se escribe en el contenedor anclado y
+       en el carril, para no invalidar el estilo del documento entero en
+       cada fotograma. Hay que leerla donde de verdad vive. */
     const p = await page.evaluate(() =>
-      Number(getComputedStyle(document.documentElement).getPropertyValue('--morph-p')),
+      Number(
+        getComputedStyle(document.querySelector('[data-morph-pin]')).getPropertyValue('--morph-p'),
+      ),
     );
     check(`Fotograma al ${Math.round(frac * 100)}%`, Math.abs(p - frac) < 0.06, `--morph-p = ${p}`);
     await page.screenshot({ path: `${OUT}/0${i + 2}-morph-${Math.round(frac * 100)}.png` });
@@ -214,6 +219,55 @@ async function run() {
   );
   await page.screenshot({ path: `${OUT}/06-seccion-proyectos.png` });
 
+  /* ---------------- Un solo juego de controles usable ----------------
+     Los conmutadores de tema e idioma existen dos veces: en el hero y en
+     el carril. Si los dos estan a opacidad cero, no hay ninguno usable;
+     si los dos estan vivos, el foco pasa por controles invisibles. Se
+     comprueba el relevo en los dos extremos del recorrido. */
+  const controles = async (y) => {
+    await scrollTo(page, y);
+    return page.evaluate(() => {
+      const op = (el) => {
+        let o = 1;
+        let n = el;
+        while (n && n !== document.body) {
+          o *= Number(getComputedStyle(n).opacity);
+          n = n.parentElement;
+        }
+        return o;
+      };
+      const usable = (el) => op(el) > 0.5 && !el.closest('[inert]');
+      const cuenta = (q) => [...document.querySelectorAll(q)].filter(usable).length;
+      return {
+        hero: cuenta('[data-hero-fade] [data-theme-toggle]'),
+        carril: cuenta('[data-rail-late] [data-theme-toggle]'),
+      };
+    });
+  };
+  const arriba = await controles(0);
+  const abajo = await controles(travel);
+  check(
+    'Siempre exactamente un conmutador de tema usable',
+    arriba.hero === 1 && arriba.carril === 0 && abajo.hero === 0 && abajo.carril === 1,
+    `arriba hero/carril ${arriba.hero}/${arriba.carril}, al final ${abajo.hero}/${abajo.carril}`,
+  );
+
+  /* ---------------- El color de las estrellas sale del tema ----------
+     Asignar un OKLCH a fillStyle NO devuelve hexadecimal: la conversion
+     fallaba en silencio y se pintaba siempre un color de reserva escrito
+     a mano, igual en los dos temas. */
+  const starRgb = await page.evaluate(() => {
+    const g = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    g.fillStyle = '#000';
+    g.fillStyle = getComputedStyle(document.documentElement)
+      .getPropertyValue('--text-faint')
+      .trim();
+    g.fillRect(0, 0, 1, 1);
+    const d = g.getImageData(0, 0, 1, 1).data;
+    return `${d[0]}, ${d[1]}, ${d[2]}`;
+  });
+  check('Las estrellas toman el color del tema', starRgb !== '160, 176, 200', starRgb);
+
   /* ---------------- Sin scroll horizontal ---------------- */
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -259,6 +313,44 @@ async function run() {
   );
   check('Movil sin scroll horizontal', mOver <= 0, `${mOver}px de desbordamiento`);
   await mpage.screenshot({ path: `${OUT}/08-movil-hero.png` });
+
+  /* ---------------- Sin transformacion, sin navegacion duplicada ------
+     Con prefers-reduced-motion, sin JavaScript, o al cargar por debajo de
+     lg, el script no se hace cargo. Si en ese estado el hero y el carril
+     quedan los dos vivos, el indice se tabula y se recita dos veces. */
+  for (const [nombre, opciones] of [
+    ['prefers-reduced-motion', { reducedMotion: 'reduce' }],
+    ['sin JavaScript', { javaScriptEnabled: false }],
+  ]) {
+    const ctx2 = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      colorScheme: 'dark',
+      ...opciones,
+    });
+    const pg = await ctx2.newPage();
+    await pg.goto(BASE, { waitUntil: 'networkidle' });
+    await pg.waitForTimeout(600);
+    const dup = await pg.evaluate(() => {
+      const vis = (el) => {
+        let n = el;
+        while (n && n !== document) {
+          const cs = getComputedStyle(n);
+          if (cs.visibility === 'hidden' || cs.display === 'none' || n.inert) return false;
+          n = n.parentElement;
+        }
+        return true;
+      };
+      const t = [...document.querySelectorAll('a[href],button')]
+        .filter(vis)
+        .map((a) => (a.textContent.trim() || a.ariaLabel || '?').replace(/\s+/g, ' '));
+      // GitHub y LinkedIn salen dos veces a proposito: hero y pie.
+      return [...new Set(t.filter((x, i) => t.indexOf(x) !== i))].filter(
+        (x) => !/^(GitHub|LinkedIn)$/.test(x),
+      );
+    });
+    check(`Sin navegacion duplicada con ${nombre}`, dup.length === 0, dup.join(', ') || 'ninguna');
+    await ctx2.close();
+  }
 
   await browser.close();
 

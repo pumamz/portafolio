@@ -134,7 +134,7 @@ un contraste que juega en contra, y puede alienar a la audiencia A3. Mitigacione
 | Contenido  | Content collections validadas con Zod | [0004](./adr/0004-contenido.md)          |
 | Hosting    | Vercel, subdominio gratuito           | [0005](./adr/0005-hosting.md)            |
 | Runtime    | Bun como gestor de paquetes           | [0006](./adr/0006-bun.md)                |
-| Movimiento | WebGL con Three.js, carga diferida    | [0007](./adr/0007-webgl-y-movimiento.md) |
+| Movimiento | Canvas 2D y CSS, sin libreria         | [0007](./adr/0007-webgl-y-movimiento.md) |
 
 ---
 

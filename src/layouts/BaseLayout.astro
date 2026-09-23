@@ -1,5 +1,10 @@
 ---
 import '@fontsource-variable/archivo/wdth.css';
+// Las URLs con hash de las dos caras que se usan sobre el pliegue, para
+// poder precargarlas. `?url` hace que Vite devuelva la ruta final en vez
+// de incrustar el fichero.
+import archivoWoff2 from '@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?url';
+import geistWoff2 from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url';
 import '@fontsource-variable/geist';
 import '@fontsource-variable/geist-mono';
 import '../styles/global.css';
@@ -51,6 +56,17 @@ const jsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
+
+    {
+      /* Las dos caras que se usan sobre el pliegue se piden a la vez que
+        el CSS, no despues de analizarlo. Medido: 139 KB de fuentes sin
+        precargar llegaban 708 ms despues del primer pintado y provocaban
+        todo el desplazamiento de maquetacion de la pagina. Solo estas
+        dos: precargar lo que no se usa de inmediato roba ancho de banda
+        a lo que si. */
+    }
+    <link rel="preload" href={archivoWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={geistWoff2} as="font" type="font/woff2" crossorigin />
 
     <title>{title}</title>
     <meta name="description" content={desc} />

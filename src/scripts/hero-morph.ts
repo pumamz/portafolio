@@ -77,7 +77,21 @@ export function initHeroMorph(): void {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const desktop = window.matchMedia(DESKTOP);
-  if (!desktop.matches) return;
+  if (!desktop.matches) {
+    /* Cargar estrecho y ensanchar dejaba la pagina en el estado roto:
+       esta funcion salia antes de registrar el listener de resize, asi que
+       no se reintentaba nunca. Medido: cargando a 800 px y ensanchando a
+       1440 quedaban 31 enlaces tabulables (los del hero y los del carril a
+       la vez) y el carril sin formar. Se escucha el cruce del umbral. */
+    const onCross = () => {
+      if (!desktop.matches) return;
+      desktop.removeEventListener('change', onCross);
+      initHeroMorph();
+    };
+    desktop.addEventListener('change', onCross);
+    cleanups.push(() => desktop.removeEventListener('change', onCross));
+    return;
+  }
 
   const sources = Array.from(stage.querySelectorAll<HTMLElement>('[data-morph]'));
   const pairs: Pair[] = [];
@@ -101,6 +115,27 @@ export function initHeroMorph(): void {
 
   const html = document.documentElement;
   html.dataset.morph = 'on';
+
+  /* --morph-p NO se escribe en <html>.
+ 
+     Escribirla en la raiz invalida el estilo del documento entero en cada
+     fotograma, aunque solo la lean cinco elementos. Medido: el bloqueo
+     del hero caia a 19-24 fps. Se escribe en los dos subarboles que la
+     consumen —el contenedor anclado y el carril— y el recalculo queda
+     acotado a ellos. */
+  const rail = document.querySelector<HTMLElement>('[data-rail]');
+  const scopes = [pin, rail].filter(Boolean) as HTMLElement[];
+
+  const heroFade = Array.from(document.querySelectorAll<HTMLElement>('[data-hero-fade]'));
+  const railLate = Array.from(document.querySelectorAll<HTMLElement>('[data-rail-late]'));
+
+  /** `inert` quita el elemento y su contenido del recorrido de tabulacion
+   *  y del arbol de accesibilidad de una vez, sin tocar la maquetacion. */
+  function setInert(list: HTMLElement[], on: boolean) {
+    list.forEach((el) => {
+      if (el.inert !== on) el.inert = on;
+    });
+  }
 
   let distance = 1;
 
@@ -151,7 +186,8 @@ export function initHeroMorph(): void {
     const top = pin!.getBoundingClientRect().top;
     const raw = clamp01(-top / distance);
 
-    html.style.setProperty('--morph-p', raw.toFixed(4));
+    const p4 = raw.toFixed(4);
+    scopes.forEach((el) => el.style.setProperty('--morph-p', p4));
 
     // Al aterrizar se cede el relevo a las piezas del carril. En ese
     // punto las dos estan superpuestas al pixel, asi que el cambio no se
@@ -159,6 +195,21 @@ export function initHeroMorph(): void {
     // sigue en su sitio cuando el hero por fin se desplaza.
     if (raw >= LANDED) html.dataset.morphDone = '';
     else delete html.dataset.morphDone;
+
+    /* LO QUE NO SE VE NO SE TABULA.
+ 
+       Las dos reglas de opacidad de global.css apagan elementos sin
+       sacarlos del recorrido de tabulacion. Medido: cuatro paradas de Tab
+       recibian el foco sin pintar un solo pixel de anillo, y dos de ellas
+       —las llamadas a la accion del hero— teletransportaban la pagina
+       unos 2000 px hacia atras al enfocarlas desde una seccion de abajo.
+       Un usuario de teclado perdia su sitio sin ver por que.
+ 
+       Los umbrales son los mismos que usa el CSS, no valores aparte: el
+       fundido del hero llega a cero en 1/1.6 = 0.625 y el del carril
+       arranca en 0.62, que es donde el otro acaba de llegar a cero. */
+    setInert(heroFade, raw > 0.625);
+    setInert(railLate, raw < 0.62);
 
     pairs.forEach((p) => {
       const span = 1 - p.stagger;
@@ -214,7 +265,9 @@ export function initHeroMorph(): void {
     window.removeEventListener('resize', onResize);
     delete html.dataset.morph;
     delete html.dataset.morphDone;
-    html.style.removeProperty('--morph-p');
+    scopes.forEach((el) => el.style.removeProperty('--morph-p'));
+    setInert(heroFade, false);
+    setInert(railLate, false);
     pairs.forEach((p) => {
       p.el.style.transform = '';
       p.el.style.transformOrigin = '';

@@ -68,21 +68,37 @@ function clamp(n: number, lo: number, hi: number): number {
   return n < lo ? lo : n > hi ? hi : n;
 }
 
-/** "#rrggbb" -> "r, g, b", para poder componer rgba() con alfa variable. */
-function toRgb(hex: string): string {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!m) return '160, 176, 200';
-  const n = parseInt(m[1], 16);
-  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
-}
-
-/** Convierte cualquier color CSS a #rrggbb delegando en el navegador.
- *  Los tokens del sistema estan en OKLCH, que no se puede interpolar a
- *  mano; asignarlo a `fillStyle` lo devuelve ya normalizado. */
-function cssColor(ctx: CanvasRenderingContext2D, value: string, fallback: string): string {
-  ctx.fillStyle = fallback;
-  ctx.fillStyle = value.trim();
-  return typeof ctx.fillStyle === 'string' ? ctx.fillStyle : fallback;
+/**
+ * Resuelve cualquier color CSS a "r, g, b" PINTANDOLO Y LEYENDO EL PIXEL.
+ *
+ * Antes esto asignaba el valor a `fillStyle` y confiaba en que la
+ * propiedad lo devolviera normalizado a #rrggbb. Eso era cierto cuando se
+ * escribio y ya no lo es: los tokens de este proyecto estan en OKLCH y
+ * Chromium devuelve "oklch(0.554 0.018 255)" tal cual. El resultado era
+ * que la conversion fallaba en silencio y las estrellas se pintaban
+ * SIEMPRE con el color de reserva escrito a mano, igual en los dos temas
+ * y distinto del que manda el sistema de diseno.
+ *
+ * Pintar un pixel y leerlo con getImageData funciona con cualquier
+ * espacio de color que el navegador sepa dibujar, presente o futuro, sin
+ * tener que analizar la sintaxis a mano.
+ */
+function resolveRgb(value: string, fallback: string): string {
+  try {
+    const c = document.createElement('canvas');
+    c.width = c.height = 1;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    if (!g) return fallback;
+    g.fillStyle = '#000';
+    g.fillStyle = value.trim();
+    g.fillRect(0, 0, 1, 1);
+    const [r, gr, b, a] = g.getImageData(0, 0, 1, 1).data;
+    // Alfa cero significa que el navegador no entendio el valor y dejo
+    // el lienzo transparente: en ese caso el color no sirve.
+    return a === 0 ? fallback : `${r}, ${gr}, ${b}`;
+  } catch {
+    return fallback;
+  }
 }
 
 export function initGravityStars(options: GravityStarsOptions = {}): void {
@@ -107,12 +123,13 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
   let glow: HTMLCanvasElement | null = null;
   let glowSize = 0;
 
-  let starColor = '#8aa0c0';
+  /** Color de las estrellas, ya resuelto a "r, g, b". */
+  let starRgb = '108, 115, 125';
   let alpha = 0.8;
 
   function readColors() {
     const styles = getComputedStyle(document.documentElement);
-    starColor = cssColor(ctx!, styles.getPropertyValue('--text-faint'), '#8aa0c0');
+    starRgb = resolveRgb(styles.getPropertyValue('--text-faint'), starRgb);
     // La opacidad sale del tema y no de las opciones: en tema claro el
     // mismo campo de estrellas se lee como suciedad sobre el blanco.
     const themed = parseFloat(styles.getPropertyValue('--stars-opacity'));
@@ -143,7 +160,7 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
     if (!gctx) return;
 
     const c = px / 2;
-    const rgb = toRgb(starColor);
+    const rgb = starRgb;
     const grad = gctx.createRadialGradient(c, c, 0, c, c, c);
     const core = clamp(o.starsSize / radius, 0.04, 0.3);
     grad.addColorStop(0, `rgba(${rgb},1)`);

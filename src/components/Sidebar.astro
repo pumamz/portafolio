@@ -55,7 +55,11 @@ const lastName = rest.join(' ');
 ---
 
 {/* ---------------- Escritorio: columna fija ---------------- */}
-<aside class="fixed inset-y-0 left-0 z-20 hidden w-64 lg:block" aria-label={t('hero.identity')}>
+<aside
+  data-rail
+  class="fixed inset-y-0 left-0 z-20 hidden w-64 lg:block"
+  aria-label={t('hero.identity')}
+>
   {
     /* El panel va aparte del contenido para poder desvanecerlo por su
       cuenta: durante el hero no debe haber una columna opaca partiendo la
@@ -78,7 +82,11 @@ const lastName = rest.join(' ');
       <span data-rail-late class="text-text-muted mt-1.5 block text-xs">{t('hero.role')}</span>
     </a>
 
-    <nav aria-label={t('hero.index')} class="border-border/70 border-t pt-7">
+    <nav
+      data-morph-group="rail"
+      aria-label={t('hero.index')}
+      class="border-border/70 border-t pt-7"
+    >
       <ul class="flex flex-col gap-3">
         {
           nav.map((item, i) => (

@@ -14,7 +14,7 @@ const lang = 'es' as const;
 ---
 
 <BaseLayout title={`${site.name} - ${site.jobTitle[lang]}`} altPath={path('en')}>
-  <Hero />
+  <Hero altPath={path('en')} />
   <Work />
   <About />
   <Timeline />
