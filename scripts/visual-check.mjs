@@ -102,25 +102,46 @@ async function run() {
     `${withStars.length} vs ${withoutStars.length} bytes`,
   );
 
-  /* ---------------- El foco sigue al puntero ----------------
-     Se lee --grid-x en la seccion antes y despues de mover el raton. Si
-     no cambia, el efecto esta muerto aunque la clase este puesta: es
-     justo el fallo que tuvo este proyecto. */
-  /* Las variables se escriben en un subarbol pequeno, no en la seccion:
-     escribirlas en la seccion invalidaria el estilo del hero entero en
-     cada fotograma. Hay que leerlas donde de verdad viven. */
-  const readGrid = () =>
-    page.evaluate(() => {
-      const s = document.querySelector('[data-reactive-grid-target]');
-      return s ? getComputedStyle(s).getPropertyValue('--grid-x').trim() : 'sin destino';
+  /* ---------------- La rejilla del stack sigue al puntero ------------
+     El hero tenia un foco equivalente y se retiro; el de Stack sigue. Se
+     comprueba el valor RENDERIZADO de la variable, no la clase: esta
+     utilidad se paso anos sin funcionar porque declaraba encima las
+     mismas variables que el script le escribia. */
+  const gridStack = async () => {
+    await page.evaluate(() => {
+      document.querySelector('#stack')?.scrollIntoView({ behavior: 'instant' });
     });
-  await page.mouse.move(300, 300);
-  await page.waitForTimeout(150);
-  const g1 = await readGrid();
-  await page.mouse.move(1100, 600);
-  await page.waitForTimeout(150);
-  const g2 = await readGrid();
-  check('El foco sigue al puntero', g1 !== g2 && g2 !== '', `${g1} -> ${g2}`);
+    await page.waitForTimeout(250);
+    const caja = await page.evaluate(() => {
+      const s = document.querySelector('[data-reactive-grid]');
+      if (!s) return null;
+      const r = s.getBoundingClientRect();
+      /* El centro de la seccion puede caer FUERA de la ventana: la de
+         Stack mide 1725 px de alto. Mover el raton ahi no genera ningun
+         pointermove y la comprobacion fallaba sin que fallara nada. */
+      const y = Math.min(Math.max(r.top + 80, 60), window.innerHeight - 60);
+      return { x: r.left + r.width / 2, y };
+    });
+    return caja;
+  };
+  const cajaStack = await gridStack();
+  const leerStack = () =>
+    page.evaluate(() => {
+      const s = document.querySelector('[data-reactive-grid]');
+      return s ? getComputedStyle(s).getPropertyValue('--grid-x').trim() : 'sin seccion';
+    });
+  if (cajaStack) {
+    await page.mouse.move(cajaStack.x - 200, cajaStack.y);
+    await page.waitForTimeout(200);
+    const s1 = await leerStack();
+    await page.mouse.move(cajaStack.x + 250, cajaStack.y);
+    await page.waitForTimeout(200);
+    const s2 = await leerStack();
+    check('La rejilla del stack sigue al puntero', s1 !== s2 && s2 !== '', `${s1} -> ${s2}`);
+  } else {
+    check('La rejilla del stack sigue al puntero', null, 'sin seccion con rejilla');
+  }
+  await scrollTo(page, 0);
 
   await page.screenshot({ path: `${OUT}/01-hero-inicio.png` });
 
@@ -279,16 +300,6 @@ async function run() {
     return `${d[0]}, ${d[1]}, ${d[2]}`;
   });
   check('Las estrellas toman el color del tema', starRgb !== '160, 176, 200', starRgb);
-
-  /* ---------------- El hero no se queda quieto ----------------------
-     Sin tocar el raton, el foco de fondo tiene que seguir derivando: es lo
-     que evita que la pagina en reposo parezca una captura de pantalla. */
-  await page.mouse.move(700, 400);
-  await page.waitForTimeout(1900); // pasa el plazo de inactividad
-  const q1 = await readGrid();
-  await page.waitForTimeout(900);
-  const q2 = await readGrid();
-  check('El foco deriva solo en reposo', q1 !== q2 && q2 !== '', `${q1} -> ${q2}`);
 
   /* ---------------- La guarda de medicion manda de verdad ------------
      `hero-morph.ts` apaga las animaciones de adorno mientras mide. Si esa

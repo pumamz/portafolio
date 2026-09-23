@@ -521,48 +521,19 @@
   }
 }
 
-/* Foco que sigue al puntero.
+/* Trama de fondo, quieta.
 
-   Sustituye al campo de particulas WebGL. Aquel dibujaba puntos blancos
-   sobre el fondo; este no dibuja nada encima, sino que DESTAPA lo que ya
-   estaba debajo dentro de un circulo difuso que sigue al cursor. Es la
-   diferencia entre espolvorear algo por encima y alumbrar una superficie.
-
-   Cuesta cero kilobytes de JavaScript: reaprovecha las variables que ya
-   publica `data-reactive-grid` (--grid-x, --grid-y, --grid-power), asi que
-   no hay un segundo script escuchando el puntero. Antes esto eran 127 KB
-   de Three.js.
-
-   La capa enmascarada lleva dos cosas: una rejilla tecnica muy tenue y un
-   resplandor de acento. Al pasar el cursor se revelan las dos a la vez, de
-   modo que la pagina parece tener una estructura debajo en lugar de un
-   fondo plano. */
-@utility spotlight {
-  /* OJO: aqui NO se declaran --grid-x / --grid-y / --grid-power.
-     El script las escribe en la <section> que lleva `data-reactive-grid`,
-     y esta capa es un HIJO. Una propiedad personalizada declarada en el
-     hijo gana a la heredada del padre, asi que declararla aqui congelaba
-     el foco en el centro para siempre. El valor por defecto va en el
-     propio var(), que es donde no estorba. */
+   Sustituye al foco que seguia al puntero y derivaba solo, retirado a
+   peticion del autor. Es solo textura: sin ella el hero es un plano de
+   color, con ella se lee como una superficie. El difuminado de los bordes
+   evita que la retícula choque contra el borde de la pantalla. */
+@utility grid-static {
   background-image:
-    radial-gradient(
-      26rem circle at var(--grid-x, 50%) var(--grid-y, 40%),
-      color-mix(in oklch, var(--accent) 28%, transparent),
-      transparent 70%
-    ),
     linear-gradient(to right, currentColor 1px, transparent 1px),
     linear-gradient(to bottom, currentColor 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    64px 64px,
-    64px 64px;
-  opacity: calc(0.28 + var(--grid-power, 0) * 0.42);
-  mask-image: radial-gradient(
-    30rem circle at var(--grid-x, 50%) var(--grid-y, 40%),
-    black,
-    transparent calc(72% - var(--grid-power, 0) * 12%)
-  );
-  transition: opacity 700ms var(--ease-fluid);
+  background-size: 64px 64px;
+  opacity: 0.045;
+  mask-image: radial-gradient(ellipse 85% 75% at 55% 45%, black 25%, transparent 78%);
 }
 
 /* Grano de pelicula. Va sobre TODO el hero, no solo sobre el foco: es lo

@@ -123,13 +123,19 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
   let glow: HTMLCanvasElement | null = null;
   let glowSize = 0;
 
+  /** Resplandor ambiental, tambien pre-renderizado. */
+  let aura: HTMLCanvasElement | null = null;
+  const AURA_PX = 420;
+
   /** Color de las estrellas, ya resuelto a "r, g, b". */
   let starRgb = '108, 115, 125';
+  let accentRgb = '68, 157, 240';
   let alpha = 0.8;
 
   function readColors() {
     const styles = getComputedStyle(document.documentElement);
     starRgb = resolveRgb(styles.getPropertyValue('--text-faint'), starRgb);
+    accentRgb = resolveRgb(styles.getPropertyValue('--accent'), accentRgb);
     // La opacidad sale del tema y no de las opciones: en tema claro el
     // mismo campo de estrellas se lee como suciedad sobre el blanco.
     const themed = parseFloat(styles.getPropertyValue('--stars-opacity'));
@@ -172,6 +178,25 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
     glow = g;
   }
 
+  /* El resplandor se dibuja UNA VEZ en un lienzo aparte y luego se
+     estampa. Rellenar un degradado radial del tamano de la ventana en
+     cada dibujo cuesta casi tres millones de pixeles; estampar un mapa de
+     420 px escalado es una sola operacion de copia. */
+  function buildAura() {
+    const c = document.createElement('canvas');
+    c.width = c.height = AURA_PX;
+    const g = c.getContext('2d');
+    if (!g) return;
+    const r = AURA_PX / 2;
+    const grad = g.createRadialGradient(r, r, 0, r, r, r);
+    grad.addColorStop(0, `rgba(${accentRgb},0.18)`);
+    grad.addColorStop(0.55, `rgba(${accentRgb},0.05)`);
+    grad.addColorStop(1, `rgba(${accentRgb},0)`);
+    g.fillStyle = grad;
+    g.fillRect(0, 0, AURA_PX, AURA_PX);
+    aura = c;
+  }
+
   function resize() {
     /* Tope 1.5 y no 2.
 
@@ -212,8 +237,26 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
 
   const pointer = { x: -9999, y: -9999, active: false };
 
-  function draw() {
+  /**
+   * Resplandor ambiental que deriva despacio.
+   *
+   * Se dibuja AQUI DENTRO y no como una capa del DOM. Como capa era un
+   * degradado grande y translucido por encima de este mismo lienzo, y
+   * componer las dos cosas cada fotograma salia carisimo: por separado
+   * costaban 3 y 1 fps, juntas 25. Dentro del lienzo es un relleno mas.
+   */
+  function drawGlow(t: number) {
+    if (!aura) return;
+    // Dos periodos distintos para que el recorrido no se lea como un bucle.
+    const gx = width * (0.42 + Math.sin(t / 9000) * 0.2 + Math.sin(t / 3700) * 0.05);
+    const gy = height * (0.34 + Math.cos(t / 11000) * 0.16 + Math.cos(t / 4300) * 0.04);
+    const d = Math.max(width, height) * 0.95;
+    ctx!.drawImage(aura, gx - d / 2, gy - d / 2, d, d);
+  }
+
+  function draw(t = 0) {
     ctx!.clearRect(0, 0, width, height);
+    if (!still) drawGlow(t);
     ctx!.globalAlpha = alpha;
 
     for (const s of stars) {
@@ -280,7 +323,7 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
     frame = requestAnimationFrame(loop);
     if (t - ultimoDibujo < 32) return;
     ultimoDibujo = t;
-    draw();
+    draw(t);
   }
 
   function start() {
@@ -321,6 +364,7 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
   const onThemeChange = () => {
     readColors();
     buildGlow();
+    buildAura();
     // Tambien en marcha: el siguiente fotograma ya usara el color nuevo,
     // pero si el bucle esta parado hay que forzar el repintado.
     if (still || !running) draw();
@@ -329,6 +373,7 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
   resize();
   readColors();
   buildGlow();
+  buildAura();
   seed();
   draw();
   start();
