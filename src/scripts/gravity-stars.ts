@@ -10,17 +10,19 @@
  *
  * Decisiones de rendimiento, porque esto corre en TODAS las paginas:
  *
- * 1. **Canvas 2D, no WebGL.** Setenta y cinco puntos con un degradado no
- *    justifican compilar shaders ni arrastrar una libreria. Ya hubo una
- *    escena de Three.js aqui y costaba 127 KB.
+ * 1. **Canvas 2D, no WebGL.** Un par de cientos de puntos estampando un
+ *    sprite no justifican compilar shaders ni arrastrar una libreria. Ya
+ *    hubo una escena de Three.js aqui y costaba 127 KB.
  * 2. **El bucle se detiene cuando no se ve.** `visibilitychange` mas un
  *    IntersectionObserver: sin eso la GPU sigue trabajando con la pestana
  *    en segundo plano, y en un portatil eso se nota en la bateria.
  * 3. **devicePixelRatio limitado a 2.** Pintar a 3x en un movil de gama
  *    alta triplica el coste sin diferencia visible.
  * 4. **El degradado de brillo se dibuja una vez** en un canvas aparte y se
- *    estampa por cada estrella. Recrear un `createRadialGradient` setenta
- *    y cinco veces por fotograma es el error clasico de este efecto.
+ *    estampa por cada estrella. Recrear un `createRadialGradient` por
+ *    estrella y fotograma es el error clasico de este efecto. Ese sprite
+ *    se genera a resolucion de dispositivo; generarlo en pixeles CSS es
+ *    lo que hacia que las estrellas se vieran borrosas.
  */
 
 export interface GravityStarsOptions {
@@ -49,15 +51,30 @@ type Cleanup = () => void;
 const cleanups: Cleanup[] = [];
 
 const DEFAULTS = {
-  starsCount: 75,
-  starsSize: 2,
-  starsOpacity: 0.75,
-  glowIntensity: 15,
+  // Mas numerosas y mas pequenas que el componente original: sobre un
+  // fondo marino, setenta y cinco puntos de 2 px con quince de halo se
+  // leen como manchas sueltas y no como un cielo.
+  starsCount: 240,
+  starsSize: 1.1,
+  starsOpacity: 0.8,
+  glowIntensity: 5,
   movementSpeed: 0.3,
   mouseInfluence: 160,
   mouseGravity: 'attract' as const,
   gravityStrength: 75,
 };
+
+function clamp(n: number, lo: number, hi: number): number {
+  return n < lo ? lo : n > hi ? hi : n;
+}
+
+/** "#rrggbb" -> "r, g, b", para poder componer rgba() con alfa variable. */
+function toRgb(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return '160, 176, 200';
+  const n = parseInt(m[1], 16);
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+}
 
 /** Convierte cualquier color CSS a #rrggbb delegando en el navegador.
  *  Los tokens del sistema estan en OKLCH, que no se puede interpolar a
@@ -98,18 +115,38 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
   }
 
   function buildGlow() {
+    /* EL SPRITE SE GENERA A RESOLUCION DE DISPOSITIVO.
+
+       Aqui estaba el desenfoque. El sprite se creaba con el tamano en
+       pixeles CSS y se estampaba sobre un lienzo escalado por
+       devicePixelRatio, asi que en una pantalla de densidad doble cada
+       estrella se ampliaba al doble y salia empastada. Generandolo ya
+       multiplicado por dpr, el estampado es uno a uno y el punto queda
+       limpio.
+
+       El nucleo tambien era el problema contrario: el degradado mantenia
+       el color solido hasta el 28% del radio, lo que da una bola difusa.
+       Ahora el nucleo es diminuto y el resto es caida, que es lo que hace
+       que se lea como una estrella y no como una mota. */
     const radius = o.starsSize + o.glowIntensity;
     glowSize = Math.ceil(radius * 2);
+
+    const px = Math.max(1, Math.ceil(glowSize * dpr));
     const g = document.createElement('canvas');
-    g.width = g.height = glowSize;
+    g.width = g.height = px;
     const gctx = g.getContext('2d');
     if (!gctx) return;
-    const grad = gctx.createRadialGradient(radius, radius, 0, radius, radius, radius);
-    grad.addColorStop(0, starColor);
-    grad.addColorStop(0.28, starColor);
-    grad.addColorStop(1, 'transparent');
+
+    const c = px / 2;
+    const rgb = toRgb(starColor);
+    const grad = gctx.createRadialGradient(c, c, 0, c, c, c);
+    const core = clamp(o.starsSize / radius, 0.04, 0.3);
+    grad.addColorStop(0, `rgba(${rgb},1)`);
+    grad.addColorStop(core, `rgba(${rgb},0.85)`);
+    grad.addColorStop(core * 2.2, `rgba(${rgb},0.22)`);
+    grad.addColorStop(1, `rgba(${rgb},0)`);
     gctx.fillStyle = grad;
-    gctx.fillRect(0, 0, glowSize, glowSize);
+    gctx.fillRect(0, 0, px, px);
     glow = g;
   }
 
@@ -228,6 +265,9 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
     cancelAnimationFrame(resizeFrame);
     resizeFrame = requestAnimationFrame(() => {
       resize();
+      // El sprite se genera en pixeles de dispositivo, asi que cambiar de
+      // pantalla (o de zoom) obliga a rehacerlo o vuelve el desenfoque.
+      buildGlow();
       seed();
       if (still) draw();
     });

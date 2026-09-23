@@ -626,6 +626,22 @@
   visibility: hidden;
 }
 
+/* EL RELEVO AL ATERRIZAR.
+
+   Cuando el viaje termina, las piezas del hero estan superpuestas al
+   pixel sobre las del carril, asi que se cambian unas por otras sin que
+   se vea. Hace falta porque a partir de ahi el hero se desmarca y se va
+   con el scroll: si siguieran siendo las suyas las que se ven, el carril
+   entero se iria con el. Las del carril son `fixed` de verdad y se
+   quedan. */
+[data-morph='on'][data-morph-done] [data-morph-to] {
+  visibility: visible;
+}
+
+[data-morph='on'][data-morph-done] [data-morph] {
+  visibility: hidden;
+}
+
 /* El panel del carril aparece al ritmo del viaje. Sin esto habria una
    columna opaca partiendo la pantalla durante el hero. */
 [data-morph='on'] [data-rail-panel] {
@@ -641,6 +657,15 @@
    tenga cuerpo. */
 [data-morph='on'] [data-rail-late] {
   opacity: clamp(0, calc((var(--morph-p, 1) - 0.68) / 0.32), 1);
+}
+
+/* La salida. En el ultimo cuarto del recorrido el fondo del hero se
+   apaga, de modo que la seccion siguiente emerge de la oscuridad en vez
+   de empujar a la anterior hacia arriba. Solo el fondo: el contenido no
+   puede moverse aqui porque las piezas que vuelan tienen que aterrizar
+   exactamente donde se midio. */
+[data-morph='on'] [data-hero-exit] {
+  opacity: clamp(0, calc((1 - var(--morph-p, 0)) / 0.25), 1);
 }
 
 /* Lo que se queda en el hero se va apagando mientras las piezas vuelan

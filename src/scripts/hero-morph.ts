@@ -1,42 +1,43 @@
 /**
- * El hero se transforma en el carril lateral al desplazar.
+ * El hero se transforma en el carril lateral mientras esta anclado.
  *
- * Cada pieza del hero —nombre, rol, indice, redes, ubicacion, retrato—
- * vuela hasta el hueco que le corresponde en el carril, encogiendo por el
- * camino. No es un relevo entre dos juegos de elementos: los que vuelan
- * son los del hero, y al aterrizar SON el carril. Siguen siendo los
- * mismos nodos y los mismos enlaces.
+ * Cada pieza del hero —nombre, indice, redes, retrato— vuela hasta el
+ * hueco que le corresponde en el carril, encogiendo por el camino. No es
+ * un relevo entre dos juegos de elementos: los que vuelan son los del
+ * hero, y al aterrizar caen exactamente sobre su pareja del carril.
  *
  * ---------------------------------------------------------------------
- * POR QUE ESTO ES JAVASCRIPT Y NO `animation-timeline: scroll()`.
+ * EL ANCLAJE ES LO QUE HACE QUE ESTO NO TIEMBLE.
  *
- * Se intento primero en CSS puro, que es la regla de la casa. No funciona
- * para esto: una animacion de scroll solo sabe interpolar valores que le
- * escribas a mano, asi que hay que calcular a pelo el desplazamiento y la
- * escala de CADA pieza, en cada tamano de ventana. Son numeros magicos
- * que se desajustan en cuanto cambia una fuente, un padding o el ancho
- * del carril, y que no se pueden verificar sin abrir el navegador.
+ * La version anterior dejaba el hero desplazandose y compensaba sumando
+ * el scroll a cada pieza para dejarlas clavadas en la ventana. Eso no
+ * puede ir fino: el compositor desplaza la pagina por su cuenta y el
+ * transform que escribe JavaScript llega siempre un fotograma tarde, asi
+ * que las piezas bailaban contra el carril, que si es `fixed` de verdad.
+ * Ese era el parpadeo.
  *
- * Este fichero no tiene ni un numero magico: mide con
- * getBoundingClientRect() donde esta cada pieza en el hero y donde esta
- * su destino en el carril, y resta. Se recalcula al cambiar el tamano de
- * la ventana, asi que aterriza exacto en cualquier pantalla.
+ * Ahora la seccion va en `position: sticky` dentro de un contenedor alto.
+ * Mientras se recorre ese contenedor, el hero se queda quieto en pantalla
+ * y sus hijos NO se desplazan: el transform depende solo del avance, no
+ * del scroll. Sin compensacion no hay desfase, y sin desfase no hay
+ * parpadeo.
  *
- * Coste: menos de 2 KB. Cabe de sobra en el presupuesto, sobre todo
- * despues de que la retirada de Three.js liberara 127 KB.
+ * El avance sale de cuanto se lleva recorrido del contenedor, asi que el
+ * bloqueo y la animacion son la misma cosa y no pueden desincronizarse.
  * ---------------------------------------------------------------------
  *
- * Nada de esto es necesario para usar el sitio. Si no se ejecuta, el
- * carril esta visible desde el principio y el hero se queda quieto: se
- * pierde la transformacion, no la navegacion.
+ * No hay ni un numero magico de posicion: getBoundingClientRect() mide
+ * donde esta cada pieza y donde esta su destino, y resta. Se recalcula al
+ * cambiar el tamano de la ventana.
+ *
+ * Si no se ejecuta —sin JavaScript, en movil, o con
+ * `prefers-reduced-motion`— el carril esta visible desde el principio y
+ * el hero se queda quieto: se pierde la transformacion, no la navegacion.
  */
 
 type Pair = {
-  /** La pieza del hero, que es la que se ve y la que vuela. */
   el: HTMLElement;
-  /** Su hueco en el carril. Solo se usa para medir; nunca se ve. */
   target: HTMLElement;
-  /** Desfase para que las piezas no lleguen todas a la vez. */
   stagger: number;
   dx: number;
   dy: number;
@@ -49,16 +50,16 @@ const cleanups: Cleanup[] = [];
 /** Por debajo de este ancho no hay carril lateral, asi que no hay viaje. */
 const DESKTOP = '(min-width: 64rem)';
 
-/** Cuanto scroll dura la transformacion, en fraccion de ventana. */
-const TRAVEL = 0.62;
-
 /** Desfase maximo entre la primera pieza y la ultima. */
 const MAX_STAGGER = 0.16;
 
+/** A partir de aqui se considera aterrizado y se cede el relevo. */
+const LANDED = 0.995;
+
 /**
  * Frenada larga: las piezas salen decididas y se posan. `linear` delata
- * movimiento generado por defecto y aqui se notaria muchisimo, porque
- * son diez cosas moviendose a la vez.
+ * movimiento generado por defecto y aqui se notaria mucho, porque son
+ * nueve cosas moviendose a la vez.
  */
 function easeOut(t: number): number {
   return 1 - Math.pow(1 - t, 3);
@@ -69,17 +70,16 @@ function clamp01(n: number): number {
 }
 
 export function initHeroMorph(): void {
-  const root = document.querySelector<HTMLElement>('[data-morph-root]');
-  if (!root) return;
+  const stage = document.querySelector<HTMLElement>('[data-morph-root]');
+  const pin = document.querySelector<HTMLElement>('[data-morph-pin]');
+  if (!stage || !pin) return;
 
-  // Quien pide menos movimiento no recibe diez elementos volando. El
-  // carril se queda como esta, visible y quieto.
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const desktop = window.matchMedia(DESKTOP);
   if (!desktop.matches) return;
 
-  const sources = Array.from(root.querySelectorAll<HTMLElement>('[data-morph]'));
+  const sources = Array.from(stage.querySelectorAll<HTMLElement>('[data-morph]'));
   const pairs: Pair[] = [];
 
   sources.forEach((el, i) => {
@@ -99,26 +99,27 @@ export function initHeroMorph(): void {
 
   if (pairs.length === 0) return;
 
-  // Marca el documento: el CSS usa esto para ocultar las copias del
-  // carril, que a partir de ahora solo sirven de regla de medir.
-  document.documentElement.dataset.morph = 'on';
+  const html = document.documentElement;
+  html.dataset.morph = 'on';
 
-  let travel = window.innerHeight * TRAVEL;
+  let distance = 1;
 
   /**
    * Mide origen y destino de cada pieza.
    *
-   * Se mide SIN transformacion aplicada, porque getBoundingClientRect()
-   * devuelve la caja ya transformada y si no se limpia primero, cada
-   * medida saldria contaminada por la anterior.
+   * Las medidas se toman RELATIVAS A LA SECCION anclada, no a la ventana.
+   * Motivo: si se mide con la pagina a medio recorrer, la seccion puede
+   * estar pegada arriba o ya saliendo, y una medida en coordenadas de
+   * ventana saldria desviada justo esa diferencia. Restando la caja de la
+   * seccion, el numero es el mismo se mida cuando se mida.
    */
   function measure() {
     pairs.forEach((p) => {
       p.el.style.transform = '';
     });
 
-    travel = window.innerHeight * TRAVEL;
-    const scroll = window.scrollY;
+    distance = Math.max(1, pin!.offsetHeight - window.innerHeight);
+    const stageRect = stage!.getBoundingClientRect();
 
     pairs.forEach((p) => {
       const from = p.el.getBoundingClientRect();
@@ -128,51 +129,42 @@ export function initHeroMorph(): void {
         p.scale = 1;
         return;
       }
-      /* El destino esta en `position: fixed`, asi que su caja no depende
-         del scroll. El origen si: esta en el flujo. Hay que restar el
-         scroll del momento de medir para pasar el origen a coordenadas de
-         documento; si no, medir con la pagina desplazada (una recarga a
-         media pagina, un cambio de tamano tras bajar) deja el aterrizaje
-         desviado justo esos pixeles. */
-      p.dx = to.left - from.left;
-      p.dy = to.top - (from.top + scroll);
+      // El destino esta en `fixed`: su caja ya esta en coordenadas de
+      // ventana y no depende del scroll. El origen se traduce a la
+      // posicion que tendra la seccion cuando este anclada arriba.
+      p.dx = to.left - (from.left - stageRect.left);
+      p.dy = to.top - (from.top - stageRect.top);
       p.scale = to.width / from.width;
-      /* El origen arriba-izquierda hace que el escalado no desplace la
-         pieza: la esquina se queda quieta y solo encoge hacia dentro.
-
-         Sin `will-change`: esta documentado en AGENTS.md que dejarlo
-         puesto de forma permanente cachea el elemento en una capa de GPU
-         a resolucion fija y hace parpadear los contornos de un pixel. El
-         navegador ya promueve solo lo que esta transformando. */
+      // El origen arriba-izquierda hace que el escalado no desplace la
+      // pieza: la esquina se queda quieta y solo encoge hacia dentro.
       p.el.style.transformOrigin = 'left top';
     });
   }
 
   /**
-   * Coloca cada pieza segun el scroll.
+   * Coloca cada pieza segun lo recorrido del contenedor anclado.
    *
-   * La clave: el elemento sigue EN EL FLUJO, no se pasa a `fixed`. Al
-   * desplazar, subiria con la pagina; se le suma el scroll para dejarlo
-   * clavado en la ventana mientras viaja. Asi no hay que reservar huecos
-   * ni se descuadra la maquetacion del hero, que es lo que pasaba con la
-   * version anterior.
+   * Sin termino de scroll: la seccion esta quieta, asi que sus hijos
+   * tambien. Es justo lo que elimina el parpadeo.
    */
   function apply() {
-    const scroll = window.scrollY;
-    const raw = clamp01(scroll / travel);
+    const top = pin!.getBoundingClientRect().top;
+    const raw = clamp01(-top / distance);
 
-    // Lo que no vuela (el panel del carril, el rol, los conmutadores)
-    // aparece al ritmo del viaje. Una sola variable para todo eso: asi el
-    // CSS no tiene que adivinar en que punto va la transformacion.
-    document.documentElement.style.setProperty('--morph-p', raw.toFixed(3));
+    html.style.setProperty('--morph-p', raw.toFixed(4));
+
+    // Al aterrizar se cede el relevo a las piezas del carril. En ese
+    // punto las dos estan superpuestas al pixel, asi que el cambio no se
+    // ve; y a partir de ahi el carril es `fixed` de verdad, de modo que
+    // sigue en su sitio cuando el hero por fin se desplaza.
+    if (raw >= LANDED) html.dataset.morphDone = '';
+    else delete html.dataset.morphDone;
 
     pairs.forEach((p) => {
       const span = 1 - p.stagger;
       const t = easeOut(clamp01((raw - p.stagger) / span));
-      const x = p.dx * t;
-      const y = scroll * t + p.dy * t;
       const s = 1 + (p.scale - 1) * t;
-      p.el.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) scale(${s.toFixed(4)})`;
+      p.el.style.transform = `translate3d(${(p.dx * t).toFixed(2)}px, ${(p.dy * t).toFixed(2)}px, 0) scale(${s.toFixed(4)})`;
     });
   }
 
@@ -206,8 +198,9 @@ export function initHeroMorph(): void {
     cancelAnimationFrame(resizeFrame);
     window.removeEventListener('scroll', onScroll);
     window.removeEventListener('resize', onResize);
-    delete document.documentElement.dataset.morph;
-    document.documentElement.style.removeProperty('--morph-p');
+    delete html.dataset.morph;
+    delete html.dataset.morphDone;
+    html.style.removeProperty('--morph-p');
     pairs.forEach((p) => {
       p.el.style.transform = '';
       p.el.style.transformOrigin = '';
