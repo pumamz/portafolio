@@ -1,0 +1,172 @@
+---
+import { Icon } from 'astro-icon/components';
+import { getLangFromUrl, useTranslations, path } from '../i18n/utils';
+import { site } from '../config/site';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+import ThemeToggle from './ThemeToggle.astro';
+
+interface Props {
+  altPath?: string;
+}
+
+const { altPath } = Astro.props;
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const home = path(lang);
+
+/**
+ * Carril de identidad fijo. Sustituye a la cabecera flotante.
+ *
+ * Por que una columna y no una barra: una barra horizontal solo da para
+ * el nombre y cinco enlaces, y obliga a elegir entre navegacion e
+ * identidad. Una columna tiene sitio para las dos cosas y, al quedarse
+ * fija, el nombre, el rol y el modo de contacto siguen en pantalla
+ * mientras se lee cualquier seccion. En un portafolio eso importa: quien
+ * decide escribirte suele hacerlo a mitad de un caso de estudio, no al
+ * final de la pagina.
+ *
+ * El indice SI va numerado. Aqui el numero informa del orden en que
+ * aparecen las secciones al bajar; sobre cada titulo no decia nada.
+ */
+const nav = [
+  { href: `${home}#work`, label: t('nav.work') },
+  { href: `${home}#about`, label: t('nav.about') },
+  { href: `${home}#stack`, label: t('nav.stack') },
+  { href: `${home}#services`, label: t('nav.services') },
+  { href: `${home}#contact`, label: t('nav.contact') },
+];
+
+const socials = [
+  { href: site.social.github, label: 'GitHub' },
+  { href: site.social.linkedin, label: 'LinkedIn' },
+].filter((s) => Boolean(s.href));
+
+const [firstName, ...rest] = site.name.split(' ');
+const lastName = rest.join(' ');
+---
+
+{/* ---------------- Escritorio: columna fija ---------------- */}
+<aside
+  class="rail-reveal border-border/70 bg-bg fixed inset-y-0 left-0 z-40 hidden w-64 flex-col gap-8 overflow-y-auto border-r px-7 py-8 lg:flex"
+  aria-label={t('hero.identity')}
+>
+  <a href={home} class="group block">
+    <span class="font-display block text-xl" style="font-stretch: 80%; font-weight: 800">
+      {firstName}{' '}
+      <span class="text-accent">{lastName}</span>
+    </span>
+    <span class="text-text-muted mt-1 block text-xs">{t('hero.role')}</span>
+  </a>
+
+  <nav aria-label={t('hero.index')} class="border-border/70 border-t pt-7">
+    <ul class="flex flex-col gap-3">
+      {
+        nav.map((item, i) => (
+          <li>
+            <a href={item.href} class="group flex items-baseline gap-3 text-sm">
+              <span class="text-text-faint group-hover:text-accent w-5 shrink-0 font-mono text-[0.6875rem] tabular-nums transition-colors duration-300">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="text-text-muted group-hover:text-text transition-colors duration-300">
+                {item.label}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  {/* mt-auto empuja el pie del carril al fondo de la ventana. */}
+  <div class="border-border/70 mt-auto flex flex-col gap-5 border-t pt-7">
+    <p class="text-text-faint flex items-center gap-2 text-xs">
+      <Icon name="lucide:map-pin" class="size-3.5 shrink-0" aria-hidden="true" />
+      {site.location[lang]}
+    </p>
+
+    {
+      socials.length > 0 && (
+        <ul class="flex flex-col gap-2.5">
+          {socials.map((s) => (
+            <li>
+              <a
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-text-muted hover:text-accent group inline-flex items-center gap-1.5 text-sm transition-colors duration-300"
+              >
+                {s.label}
+                <Icon
+                  name="lucide:arrow-up-right"
+                  class="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0"
+                  aria-hidden="true"
+                />
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <div class="flex items-center gap-2">
+      <LanguageSwitcher altPath={altPath} />
+      <ThemeToggle />
+    </div>
+  </div>
+</aside>
+
+{
+  /* ---------------- Movil: barra minima ----------------
+
+    Por debajo de lg no cabe una columna fija sin comerse la mitad de la
+    pantalla, asi que el carril se pliega en una tira con el nombre y un
+    desplegable. Sigue sin JavaScript de framework: <details> nativo.
+    Coste asumido: no se cierra con Escape ni al pulsar un enlace. */
+}
+<header
+  class="border-border/70 bg-bg fixed inset-x-0 top-0 z-40 border-b lg:hidden"
+  aria-label={t('hero.identity')}
+>
+  <div class="flex items-center justify-between gap-4 px-5 py-3">
+    <a href={home} class="font-display text-base" style="font-stretch: 80%; font-weight: 800">
+      {firstName}{' '}
+      <span class="text-accent">{lastName}</span>
+    </a>
+
+    <div class="flex items-center gap-2">
+      <LanguageSwitcher altPath={altPath} />
+      <ThemeToggle />
+    </div>
+  </div>
+
+  <details class="group border-border/70 border-t">
+    <summary
+      class="text-text-muted flex cursor-pointer items-center justify-between px-5 py-2.5 text-sm marker:content-none [&::-webkit-details-marker]:hidden"
+    >
+      {t('nav.toggleMenu')}
+      <Icon
+        name="lucide:chevron-down"
+        class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-open:rotate-180 motion-reduce:transition-none"
+        aria-hidden="true"
+      />
+    </summary>
+    <ul class="flex flex-col gap-0.5 px-3 pb-3">
+      {
+        nav.map((item, i) => (
+          <li>
+            <a
+              href={item.href}
+              class="text-text hover:bg-text/5 flex items-baseline gap-3 rounded-xl px-2 py-2.5 text-sm"
+            >
+              <span class="text-text-faint w-5 shrink-0 font-mono text-[0.6875rem] tabular-nums">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </details>
+</header>

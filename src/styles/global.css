@@ -533,6 +533,67 @@
   }
 }
 
+/* Escape del margen que reserva el carril fijo.
+
+   El contenido va dentro de un contenedor con `padding-left: 16rem` a
+   partir de lg. El hero necesita los dos bordes de la ventana para que el
+   nombre llegue a sangre, asi que se sale con un margen negativo del
+   mismo tamano y recupera esa anchura.
+
+   Se suma al 100% en lugar de usar `w-screen`: `100vw` incluye la barra
+   de desplazamiento, y esa diferencia de unos pocos pixeles es
+   exactamente lo que produce un scroll horizontal en toda la pagina. */
+@utility full-bleed {
+  @media (width >= 64rem) {
+    margin-left: -16rem;
+    width: calc(100% + 16rem);
+  }
+}
+
+/* El carril fijo nace del hero.
+
+   Mientras se ve la primera pantalla la navegacion vive dentro del hero.
+   Conforme esa pantalla sale, el carril entra por la izquierda con la
+   misma lista y recoge el testigo. No es decoracion: explica de donde
+   viene ese elemento que antes no estaba.
+
+   ESTADO POR DEFECTO: VISIBLE. La animacion solo existe dentro del
+   @supports. Donde no hay soporte para animaciones ligadas al scroll
+   (Safari y Firefox a dia de hoy) el carril esta puesto desde el
+   principio, que es feo pero navegable. Al reves —ocultarlo por defecto y
+   confiar en que la animacion lo traiga— dejaria a esos navegadores sin
+   navegacion en toda la pagina.
+
+   El rango va en unidades de ventana y no en porcentaje del documento:
+   el carril tiene que entrar cuando se acaba el hero, que mide una
+   pantalla, no cuando se lleve un tanto por ciento del scroll total (que
+   depende de cuanto contenido haya debajo). */
+@utility rail-reveal {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      animation-name: rail-in;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(root block);
+      animation-range: 35vh 80vh;
+    }
+  }
+}
+
+@keyframes rail-in {
+  from {
+    opacity: 0;
+    /* Desplazado fuera de pantalla, no solo transparente: asi no
+       intercepta clics mientras todavia no se ve. */
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* Barra de progreso de lectura, anclada al scroll del documento. */
 @utility scroll-progress {
   @media (prefers-reduced-motion: no-preference) {

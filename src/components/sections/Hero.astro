@@ -3,63 +3,51 @@ import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import { getLangFromUrl, useTranslations, path } from '../../i18n/utils';
 import { site } from '../../config/site';
-import { getProjects } from '../../lib/projects';
-import { stack } from '../../config/stack';
 import ParticleField from '../ParticleField.astro';
 import photo from '../../assets/daniel.jpeg';
 
 /**
- * Hero en dos columnas: cartel a la izquierda, ficha de identidad a la
- * derecha y una franja de cifras cerrando la primera pantalla.
+ * Hero de cartel: el nombre ocupa todo el ancho, anclado abajo.
  *
- * Por que el titular NO es el nombre. Antes ponia "Daniel / Puma" a cuerpo
- * gigante. Un nombre no le dice nada a quien todavia no sabe quien eres:
- * ocupa la posicion de mas valor de la pagina para no afirmar nada. El
- * nombre baja a la ficha, donde se busca, y el sitio de honor lo ocupa una
- * afirmacion que se puede comprobar bajando.
+ * La composicion es deliberadamente desequilibrada. Arriba a la izquierda,
+ * una linea pequena que dice de que va esto; en medio, vacio; abajo, el
+ * nombre a sangre. Ese vacio central es lo que hace que el nombre pese:
+ * si el bloque estuviera centrado y rodeado de contenido, seria un titular
+ * grande mas. Aislado contra una extension vacia, se lee como un cartel.
  *
- * El carril de la derecha existe para que los datos que un reclutador
- * busca —quien, que hace, donde, como contactar— esten todos visibles sin
- * desplazarse, en lugar de repartidos por seis secciones.
+ * El nombre se parte en dos para tratar el apellido de forma distinta. Es
+ * lo que convierte un dato en una composicion tipografica.
  */
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const home = path(lang);
 
-/* Las cifras se calculan del contenido real, nunca se escriben a mano: si
-   manana entra un proyecto, el numero sube solo. Un dato desactualizado en
-   un portafolio transmite mas descuido que no poner ninguno. */
-const projects = await getProjects(lang);
-const led = projects.filter((p) => /lider|lead/i.test(p.data.role)).length;
-const techCount = stack.reduce((total, group) => total + group.items.length, 0);
+const [firstName, ...rest] = site.name.split(' ');
+const lastName = rest.join(' ');
 
-const stats = [
-  { value: projects.length, label: t('stats.projects'), animate: true },
-  { value: led, label: t('stats.led'), animate: true },
-  // El ano no se anima: contar desde cero hasta 2023 no significa nada y
-  // durante un segundo muestra fechas que son mentira.
-  { value: 2023, label: t('stats.since'), animate: false },
-  { value: techCount, label: t('stats.stack'), animate: true },
-];
+const year = new Date().getFullYear();
 
-/* El indice SI va numerado, a diferencia de los titulos de seccion. Aqui
-   el numero informa: dice en que orden aparecen al bajar. Sobre cada
-   titulo no decia nada y era puro adorno. */
-const index = [
+const socials = [
+  { href: site.social.github, label: 'GitHub' },
+  { href: site.social.linkedin, label: 'LinkedIn' },
+].filter((s) => Boolean(s.href));
+
+/**
+ * El hero lleva su propio indice, y el carril fijo lo repite.
+ *
+ * No es duplicado por descuido: es el relevo. Mientras se ve la primera
+ * pantalla, la navegacion vive aqui arriba; en cuanto el hero empieza a
+ * salir, el carril de la izquierda entra con la misma lista y recoge el
+ * testigo. En ningun momento se queda la pagina sin navegacion, que es lo
+ * que pasaria si el carril fuera lo unico y solo apareciera al bajar.
+ */
+const nav = [
   { href: `${home}#work`, label: t('nav.work') },
   { href: `${home}#about`, label: t('nav.about') },
   { href: `${home}#stack`, label: t('nav.stack') },
   { href: `${home}#services`, label: t('nav.services') },
   { href: `${home}#contact`, label: t('nav.contact') },
 ];
-
-const socials = [
-  { href: site.social.github, icon: 'simple-icons:github', label: 'GitHub' },
-  { href: site.social.linkedin, icon: 'simple-icons:linkedin', label: 'LinkedIn' },
-].filter((s) => Boolean(s.href));
-
-const [firstName, ...rest] = site.name.split(' ');
-const lastName = rest.join(' ');
 ---
 
 {
@@ -69,212 +57,166 @@ const lastName = rest.join(' ');
     detras del fondo opaco del documento y desaparecen: el campo de
     particulas se renderizaba sin que se viera nada. */
 }
-<section class="relative isolate flex min-h-[100dvh] flex-col overflow-hidden pt-28 sm:pt-32">
+<section
+  class="full-bleed relative isolate flex min-h-[calc(100dvh-6.5rem)] flex-col justify-between overflow-hidden px-6 pt-10 pb-10 sm:px-10 sm:pt-12 lg:min-h-[100dvh] lg:pt-16"
+>
   <div
     aria-hidden="true"
-    class="bg-accent/12 parallax-slow pointer-events-none absolute -top-40 -right-40 -z-10 size-[40rem] rounded-full blur-[120px]"
+    class="bg-accent/12 parallax-slow pointer-events-none absolute top-1/4 left-1/2 -z-10 size-[34rem] -translate-x-1/2 rounded-full blur-[130px]"
   >
   </div>
 
   <ParticleField />
 
-  <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6">
-    <div class="grid flex-1 items-start gap-x-12 gap-y-14 lg:grid-cols-[1fr_19rem]">
-      {/* ---------------- Cartel ---------------- */}
-      <div class="flex flex-col justify-center lg:min-h-[60vh]">
-        {
-          /* Cuerpo atado a la columna, no a la escala general. La escala
-            fluida del sistema (`text-5xl`) llega a 10rem, pensada para un
-            titular a todo el ancho; aqui la columna es dos tercios de la
-            pagina y en caja alta condensada esa medida desbordaba. El vw
-            esta calculado para que la linea mas larga en espanol,
-            "SISTEMAS COMPLETOS,", quepa en una sola linea a 1440px. */
-        }
-        <h1 class="poster reveal text-[clamp(2.5rem,5.8vw,5rem)]" style="--delay: 60ms">
-          <span class="block">{t('hero.claim.line1')}</span>
-          <span class="text-accent block">{t('hero.claim.line2')}</span>
-        </h1>
-
-        <p
-          class="reveal text-text-muted mt-9 max-w-[46ch] text-lg text-pretty"
-          style="--delay: 200ms"
-        >
-          {t('hero.claim.support')}
-        </p>
-
-        <div class="reveal mt-11 flex flex-wrap items-center gap-4" style="--delay: 300ms">
-          {
-            /* La flecha nunca va suelta junto al texto: va dentro de su
-              propio circulo, a ras del padding interior. */
-          }
-          <a
-            href={`${home}#contact`}
-            class="group bg-accent text-on-accent hover:bg-accent-hover inline-flex items-center gap-3 rounded-full py-2 pr-2 pl-7 text-base font-medium transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
-          >
-            {t('hero.cta.primary')}
-            <span
-              aria-hidden="true"
-              class="bg-on-accent/15 grid size-9 place-items-center rounded-full"
-            >
-              <Icon
-                name="lucide:arrow-right"
-                class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0"
-              />
-            </span>
-          </a>
-
-          {
-            /* ring-outline en lugar de border: un box-shadow interior no
-              desaparece al promover el elemento a capa de GPU. */
-          }
-          <a
-            href={`${home}#work`}
-            class="group ring-outline hover:text-accent inline-flex items-center gap-3 rounded-full py-2 pr-2 pl-7 text-base font-medium transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-[inset_0_0_0_1px_var(--accent)]"
-          >
-            {t('hero.cta.secondary')}
-            <span
-              aria-hidden="true"
-              class="ring-outline-subtle grid size-9 place-items-center rounded-full"
-            >
-              <Icon
-                name="lucide:arrow-down"
-                class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-y-0.5 motion-reduce:group-hover:translate-y-0"
-              />
-            </span>
-          </a>
-        </div>
-      </div>
-
-      {/* ---------------- Ficha de identidad ---------------- */}
+  {/* ---------------- Cabecera de la composicion ---------------- */}
+  <div class="reveal flex flex-wrap items-start justify-between gap-6" style="--delay: 60ms">
+    <div>
       {
-        /* Cada bloque va separado por una linea de un pixel en lugar de ir
-          en su propia tarjeta. Cuatro tarjetas apiladas convierten la
-          ficha en un formulario; las lineas agrupan igual de bien y pesan
-          mucho menos visualmente. */
+        /* La afirmacion va aqui, pequena. El nombre de abajo llama la
+          atencion; esta linea es la que dice por que deberia importarte. */
       }
-      <aside
-        class="reveal border-border/70 flex flex-col gap-7 border-t pt-8 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10"
-        style="--delay: 420ms"
-        aria-label={t('hero.identity')}
-      >
-        <div>
-          <p class="font-display text-2xl" style="font-stretch: 85%; font-weight: 800">
-            {firstName}{' '}
-            {lastName && <span class="text-accent">{lastName}</span>}
-          </p>
-          <p class="text-text-muted mt-1.5 text-sm">{t('hero.role')}</p>
-        </div>
-
-        {
-          socials.length > 0 && (
-            <ul class="flex items-center gap-2.5">
-              {socials.map((s) => (
-                <li>
-                  <a
-                    href={s.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={s.label}
-                    class="ring-outline text-text-muted hover:text-accent grid size-10 place-items-center rounded-full transition-colors duration-300 hover:shadow-[inset_0_0_0_1px_var(--accent)]"
-                  >
-                    <Icon name={s.icon} class="size-4" />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )
-        }
-
-        <p class="text-text-muted border-border/70 border-t pt-7 text-sm leading-relaxed">
-          {site.description[lang]}
-        </p>
-
-        <p class="text-text-faint flex items-center gap-2 text-sm">
-          <Icon name="lucide:map-pin" class="size-3.5 shrink-0" aria-hidden="true" />
-          {site.location[lang]}
-        </p>
-
-        {
-          /* Indice numerado. En pantallas pequenas sobra: la cabecera ya
-            lleva el mismo menu y repetirlo alarga el hero sin aportar. */
-        }
-        <nav class="border-border/70 hidden border-t pt-7 lg:block" aria-label={t('hero.index')}>
-          <ul class="flex flex-col gap-2.5">
-            {
-              index.map((item, i) => (
-                <li>
-                  <a href={item.href} class="group flex items-baseline gap-3 text-sm">
-                    <span class="text-text-faint group-hover:text-accent w-5 shrink-0 font-mono text-[0.6875rem] tabular-nums transition-colors duration-300">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <span class="text-text-muted group-hover:text-text transition-colors duration-300">
-                      {item.label}
-                    </span>
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
-        </nav>
-
-        {
-          /* El retrato vive aqui y no en "Sobre mi": una cara en la primera
-            pantalla construye confianza antes de que se lea una sola
-            linea, y repetirla mas abajo solo gastaria espacio. */
-        }
-        {
-          /* El marco se inclina y la imagen se desplaza dentro en sentido
-            contrario. Ese desfase es lo que da volumen a una foto plana. */
-        }
-        <div class="border-border/70 hidden border-t pt-7 lg:block">
-          <div data-photo-depth class="photo-depth">
-            <div class="ring-outline relative overflow-hidden rounded-2xl">
-              <Image
-                src={photo}
-                alt={t('about.photoAlt')}
-                width={640}
-                densities={[1, 2]}
-                loading="eager"
-                class="photo-depth-inner w-full object-cover"
-              />
-              <div
-                aria-hidden="true"
-                class="photo-depth-sheen pointer-events-none absolute inset-0 mix-blend-soft-light"
-              >
-              </div>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <p class="font-display text-lg sm:text-xl" style="font-stretch: 85%; font-weight: 700">
+        {t('hero.claim.line1')}{' '}
+        <span class="text-accent">{t('hero.claim.line2')}</span>
+      </p>
+      <p class="text-text-faint mt-2 font-mono text-[0.6875rem] tracking-[0.2em] uppercase">
+        {t('hero.meta')} / {year}
+      </p>
     </div>
 
-    {/* ---------------- Franja de cifras ---------------- */}
     {
-      /* Cierra la primera pantalla. Es la prueba numerica de lo que afirma
-        el cartel, y ponerla aqui en lugar de en una seccion aparte
-        significa que la afirmacion y su respaldo se ven a la vez. */
+      /* Indice numerado arriba a la derecha. Se oculta por debajo de lg,
+        donde la tira superior del carril ya lleva el mismo menu. */
     }
-    <dl
-      class="reveal border-border/70 mt-14 grid grid-cols-2 gap-x-8 gap-y-9 border-t py-10 md:grid-cols-4"
-      style="--delay: 520ms"
+    <nav aria-label={t('hero.index')} class="hidden lg:block">
+      <ul class="flex flex-wrap items-baseline gap-x-7 gap-y-2">
+        {
+          nav.map((item, i) => (
+            <li>
+              <a href={item.href} class="group inline-flex items-baseline gap-2">
+                <span class="text-text-faint group-hover:text-accent font-mono text-[0.625rem] tabular-nums transition-colors duration-300">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span
+                  class="font-display text-text-muted group-hover:text-text text-sm transition-colors duration-300"
+                  style="font-stretch: 85%; font-weight: 700"
+                >
+                  {item.label}
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+
+  {/* ---------------- Bloque del nombre ---------------- */}
+  <div class="mt-16">
+    <div class="flex items-end justify-between gap-8">
+      <p
+        class="reveal text-text-muted max-w-[34ch] text-sm text-pretty sm:text-base"
+        style="--delay: 160ms"
+      >
+        {t('hero.claim.support')}
+      </p>
+
+      {
+        /* El retrato va junto al nombre, no en el carril: a esta escala
+          hace de contrapeso al bloque tipografico y evita que la mitad
+          derecha quede vacia. Oculto en movil, donde el nombre ya ocupa
+          el ancho entero y la foto lo partiria en dos. */
+      }
+      <div data-photo-depth class="photo-depth hidden w-40 shrink-0 sm:block lg:w-48">
+        <div class="ring-outline relative overflow-hidden rounded-xl">
+          <Image
+            src={photo}
+            alt={t('about.photoAlt')}
+            width={420}
+            densities={[1, 2]}
+            loading="eager"
+            class="photo-depth-inner aspect-[4/5] w-full object-cover"
+          />
+          <div
+            aria-hidden="true"
+            class="photo-depth-sheen pointer-events-none absolute inset-0 mix-blend-soft-light"
+          >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {
+      /* El cuerpo se ata al ancho de la ventana con vw, no a la escala
+        tipografica del sistema. Es lo que hace que el nombre llegue de
+        borde a borde en cualquier pantalla en lugar de dejar un margen
+        distinto en cada una. El 13vw esta calculado para "DANIEL PUMA"
+        —once caracteres— contra el ancho util descontando el carril. */
+    }
+    <h1
+      class="poster reveal mt-6 text-[clamp(3rem,13vw,13rem)]"
+      style="--delay: 240ms"
+      aria-label={site.name}
     >
       {
-        stats.map((stat) => (
-          <div>
-            {/* tabular-nums es imprescindible: sin cifras de ancho fijo el
-                numero cambia de anchura en cada fotograma y el bloque
-                entero tiembla mientras cuenta. */}
-            <dd
-              class="font-display text-accent text-4xl tabular-nums"
-              style="font-stretch: 70%; font-weight: 900"
-            >
-              {stat.animate ? <span data-count-to={stat.value}>0</span> : stat.value}
-            </dd>
-            <dt class="text-text-muted mt-2 text-sm">{stat.label}</dt>
-          </div>
-        ))
+        /* El espacio entre nombre y apellido es un margen, no un caracter.
+          Dos motivos: un espacio suelto entre expresiones desaparece al
+          formatear el fichero (paso: quedaba "DanielPuma"), y a este
+          cuerpo el espacio de la fuente es demasiado ancho. En em, se
+          escala solo con el titular. El nombre completo se anuncia desde
+          el aria-label del h1. */
       }
-    </dl>
+      <span aria-hidden="true"
+        >{firstName}<span class="text-accent ml-[0.26em]">{lastName}</span></span
+      >
+    </h1>
+
+    <div
+      class="reveal border-border/70 mt-8 flex flex-wrap items-center justify-between gap-x-8 gap-y-4 border-t pt-6"
+      style="--delay: 320ms"
+    >
+      <a
+        href={`${home}#work`}
+        class="group text-text hover:text-accent inline-flex items-center gap-2.5 text-sm font-medium transition-colors duration-300"
+      >
+        <Icon
+          name="lucide:arrow-down"
+          class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-y-0.5 motion-reduce:group-hover:translate-y-0"
+          aria-hidden="true"
+        />
+        {t('hero.cta.secondary')}
+      </a>
+
+      <ul class="flex flex-wrap items-center gap-x-6 gap-y-2">
+        {
+          socials.map((s) => (
+            <li>
+              <a
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-text-muted hover:text-accent group inline-flex items-center gap-1.5 font-mono text-xs tracking-widest uppercase transition-colors duration-300"
+              >
+                {s.label}
+                <Icon
+                  name="lucide:arrow-up-right"
+                  class="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0"
+                  aria-hidden="true"
+                />
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <a
+            href={`${home}#contact`}
+            class="bg-accent text-on-accent hover:bg-accent-hover inline-flex items-center rounded-full px-5 py-2 text-sm font-medium transition-colors duration-300"
+          >
+            {t('hero.cta.primary')}
+          </a>
+        </li>
+      </ul>
+    </div>
   </div>
 </section>
 

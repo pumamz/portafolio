@@ -42,6 +42,7 @@ export const ui = {
     'hero.claim.support':
       'Cuatro sistemas construidos de punta a punta: backend, interfaz y despliegue.',
     'hero.identity': 'Perfil',
+    'hero.meta': 'Portafolio',
     'hero.index': 'Secciones',
 
     'work.title': 'Proyectos seleccionados',
@@ -120,6 +121,7 @@ export const ui = {
     'hero.claim.line2': 'not prototypes.',
     'hero.claim.support': 'Four systems built end to end: backend, interface and deployment.',
     'hero.identity': 'Profile',
+    'hero.meta': 'Portfolio',
     'hero.index': 'Sections',
 
     'work.title': 'Selected work',
