@@ -626,11 +626,32 @@
   visibility: hidden;
 }
 
-/* El panel del carril y lo que no vuela aparecen al ritmo del viaje. Sin
-   esto habria una columna opaca partiendo la pantalla durante el hero. */
-[data-morph='on'] [data-rail-panel],
-[data-morph='on'] [data-rail-late] {
+/* El panel del carril aparece al ritmo del viaje. Sin esto habria una
+   columna opaca partiendo la pantalla durante el hero. */
+[data-morph='on'] [data-rail-panel] {
   opacity: var(--morph-p, 1);
+}
+
+/* Lo que NO vuela del carril (el rol, la ubicacion, los conmutadores) solo
+   entra en el ultimo tercio del viaje.
+
+   Antes entraba desde el primer pixel de scroll y se veia texto suelto
+   flotando sobre el hero, con el panel todavia transparente: no parecia
+   un carril formandose, parecia basura. Ahora espera a que el panel ya
+   tenga cuerpo. */
+[data-morph='on'] [data-rail-late] {
+  opacity: clamp(0, calc((var(--morph-p, 1) - 0.68) / 0.32), 1);
+}
+
+/* Lo que se queda en el hero se va apagando mientras las piezas vuelan
+   por encima.
+
+   Sin esto el nombre pasaba por encima del texto de apoyo y se leian los
+   dos a la vez, superpuestos. Las piezas que viajan van clavadas a la
+   ventana y el resto sube con el scroll: si ese resto no se apaga, se
+   cruzan. */
+[data-morph='on'] [data-hero-fade] {
+  opacity: clamp(0, calc(1 - var(--morph-p, 0) * 1.6), 1);
 }
 
 /* Barra de progreso de lectura, anclada al scroll del documento. */

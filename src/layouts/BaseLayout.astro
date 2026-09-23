@@ -101,43 +101,58 @@ const jsonLd = {
     <ClientRouter />
   </head>
 
-  <body class="bg-bg text-text antialiased">
-    <a
-      href="#main"
-      class="focus-visible:bg-accent focus-visible:text-on-accent sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-50 focus-visible:rounded-md focus-visible:px-4 focus-visible:py-2"
-    >
-      {t('nav.skipToContent')}
-    </a>
+  {
+    (
+      /* OJO CON EL FONDO. El lienzo de estrellas va en z-10 NEGATIVO para
+      quedar por detras de todo el contenido sin capturar clics. Para que
+      se vea, <body> NO puede pintar fondo: si lo hiciera, taparia un hijo
+      con z negativo y el lienzo renderizaria sin que se viera nada. Ya
+      paso con el canvas de particulas.
 
-    {
-      /* Barra de progreso de lectura. `scroll-progress` la vincula al
+      El color de fondo lo pone <html> en global.css, y ese sube al lienzo
+      de la ventana, que se pinta por debajo incluso de los z negativos.
+      Por eso funciona, y por eso aqui no hay `bg-bg`. */
+
+      <body class="text-text antialiased">
+        <canvas
+          data-gravity-stars
+          aria-hidden="true"
+          class="pointer-events-none fixed inset-0 -z-10"
+        />
+
+        <a
+          href="#main"
+          class="focus-visible:bg-accent focus-visible:text-on-accent sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-50 focus-visible:rounded-md focus-visible:px-4 focus-visible:py-2"
+        >
+          {t('nav.skipToContent')}
+        </a>
+
+        {/* Barra de progreso de lectura. `scroll-progress` la vincula al
         scroll del documento con animation-timeline, sin JavaScript: la
-        anima el compositor y no toca el hilo principal. */
-    }
-    <div
-      aria-hidden="true"
-      class="bg-accent scroll-progress fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0"
-    >
-    </div>
+        anima el compositor y no toca el hilo principal. */}
+        <div
+          aria-hidden="true"
+          class="bg-accent scroll-progress fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0"
+        ></div>
 
-    <PointerEffects />
+        <PointerEffects />
 
-    <Sidebar altPath={altPath} />
+        <Sidebar altPath={altPath} />
 
-    {
-      /* El contenido se aparta del carril fijo a partir de lg. El hero se
+        {/* El contenido se aparta del carril fijo a partir de lg. El hero se
         sale de ese margen a proposito —ver `full-bleed` en global.css—
         porque su composicion necesita los dos bordes de la ventana.
 
         En movil no hay carril lateral, solo la tira superior del
-        componente, asi que el hueco es por arriba. */
-    }
-    <div class="pt-[6.5rem] lg:pt-0 lg:pl-64">
-      <main id="main">
-        <slot />
-      </main>
+        componente, asi que el hueco es por arriba. */}
+        <div class="pt-[6.5rem] lg:pt-0 lg:pl-64">
+          <main id="main">
+            <slot />
+          </main>
 
-      <Footer />
-    </div>
-  </body>
+          <Footer />
+        </div>
+      </body>
+    )
+  }
 </html>

@@ -18,6 +18,7 @@
   import { initPointerEffects, destroyPointerEffects } from '../scripts/pointer-effects';
   import { initAmbient, destroyAmbient } from '../scripts/ambient';
   import { initHeroMorph, destroyHeroMorph } from '../scripts/hero-morph';
+  import { initGravityStars, destroyGravityStars } from '../scripts/gravity-stars';
 
   const start = () => {
     initPointerEffects();
@@ -25,12 +26,14 @@
     // Despues de las otras dos: mide cajas, y conviene que el resto ya
     // haya hecho lo suyo antes de tomar medidas.
     initHeroMorph();
+    initGravityStars();
   };
 
   const stop = () => {
     destroyPointerEffects();
     destroyAmbient();
     destroyHeroMorph();
+    destroyGravityStars();
   };
 
   start();

@@ -53,7 +53,7 @@ const DESKTOP = '(min-width: 64rem)';
 const TRAVEL = 0.62;
 
 /** Desfase maximo entre la primera pieza y la ultima. */
-const MAX_STAGGER = 0.28;
+const MAX_STAGGER = 0.16;
 
 /**
  * Frenada larga: las piezas salen decididas y se posan. `linear` delata
