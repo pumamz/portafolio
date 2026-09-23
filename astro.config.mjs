@@ -33,6 +33,10 @@ export default defineConfig({
       include: {
         'simple-icons': ['*'],
         lucide: ['*'],
+        // Logos de marca originales, a todo color, para la seccion de
+        // stack. `simple-icons` sigue haciendo falta: trae las versiones
+        // monocromas de las marcas cuyo logo original es negro.
+        logos: ['*'],
       },
     }),
     sitemap({
