@@ -22,13 +22,7 @@ const t = useTranslations(lang);
   </div>
 
   <div class="mx-auto max-w-6xl px-6 py-28 sm:py-36">
-    <SectionHeading
-      id="stack"
-      index="04"
-      eyebrow={t('stack.eyebrow')}
-      title={t('stack.title')}
-      intro={t('stack.intro')}
-    />
+    <SectionHeading id="stack" title={t('stack.title')} intro={t('stack.intro')} />
 
     {
       /* Esfera arrastrable. Es una vista alternativa del mismo contenido
@@ -89,7 +83,7 @@ const t = useTranslations(lang);
                           convierte una lista de logos en evidencia. */}
                       <span
                         role="tooltip"
-                        class="glass text-text pointer-events-none absolute -top-2 left-1/2 z-20 w-max max-w-[10rem] -translate-x-1/2 -translate-y-full rounded-xl px-2.5 py-1.5 text-center text-[0.6875rem] leading-tight opacity-0 transition-opacity duration-300 group-hover/tech:opacity-100"
+                        class="floating-surface text-text pointer-events-none absolute -top-2 left-1/2 z-20 w-max max-w-[10rem] -translate-x-1/2 -translate-y-full rounded-xl px-2.5 py-1.5 text-center text-[0.6875rem] leading-tight opacity-0 transition-opacity duration-300 group-hover/tech:opacity-100"
                       >
                         {tech.note[lang]}
                       </span>

@@ -37,13 +37,13 @@ const nav = [
     sangre completa parte la pagina en dos; una pastilla despegada deja
     respirar el contenido por debajo y se lee como un objeto.
 
-    El desenfoque va aqui, en un elemento fijo, nunca sobre contenido que
-    se desplaza: eso obligaria a repintar en cada fotograma. */
+    La pastilla es opaca, no esmerilada: ver el contenido pasar borroso por
+    debajo no aporta nada y enturbia el texto de la propia navegacion. */
 }
 <header class="pointer-events-none fixed inset-x-0 top-0 z-40 px-4 pt-4 sm:px-6 sm:pt-6">
   <div class="mx-auto max-w-6xl">
     <div
-      class="glass pointer-events-auto flex items-center justify-between gap-4 rounded-full py-2.5 pr-2.5 pl-5 sm:pl-6"
+      class="floating-surface pointer-events-auto flex items-center justify-between gap-4 rounded-full py-2.5 pr-2.5 pl-5 sm:pl-6"
     >
       <a
         href={home}
@@ -82,7 +82,9 @@ const nav = [
         Coste asumido: no se cierra con Escape ni al pulsar un enlace. A
         cambio, cero kilobytes para un menu de cuatro enlaces. */
     }
-    <details class="group glass pointer-events-auto mt-2 overflow-hidden rounded-3xl md:hidden">
+    <details
+      class="group floating-surface pointer-events-auto mt-2 overflow-hidden rounded-3xl md:hidden"
+    >
       <summary
         class="text-text-muted flex cursor-pointer items-center justify-between px-5 py-3 text-sm marker:content-none [&::-webkit-details-marker]:hidden"
       >

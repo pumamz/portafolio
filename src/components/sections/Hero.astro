@@ -1,14 +1,63 @@
 ---
+import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import { getLangFromUrl, useTranslations, path } from '../../i18n/utils';
 import { site } from '../../config/site';
+import { getProjects } from '../../lib/projects';
+import { stack } from '../../config/stack';
 import ParticleField from '../ParticleField.astro';
+import photo from '../../assets/daniel.jpeg';
 
+/**
+ * Hero en dos columnas: cartel a la izquierda, ficha de identidad a la
+ * derecha y una franja de cifras cerrando la primera pantalla.
+ *
+ * Por que el titular NO es el nombre. Antes ponia "Daniel / Puma" a cuerpo
+ * gigante. Un nombre no le dice nada a quien todavia no sabe quien eres:
+ * ocupa la posicion de mas valor de la pagina para no afirmar nada. El
+ * nombre baja a la ficha, donde se busca, y el sitio de honor lo ocupa una
+ * afirmacion que se puede comprobar bajando.
+ *
+ * El carril de la derecha existe para que los datos que un reclutador
+ * busca —quien, que hace, donde, como contactar— esten todos visibles sin
+ * desplazarse, en lugar de repartidos por seis secciones.
+ */
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+const home = path(lang);
 
-// El nombre se parte para tratar el apellido de forma distinta. Es lo que
-// convierte un titular en una composicion tipografica.
+/* Las cifras se calculan del contenido real, nunca se escriben a mano: si
+   manana entra un proyecto, el numero sube solo. Un dato desactualizado en
+   un portafolio transmite mas descuido que no poner ninguno. */
+const projects = await getProjects(lang);
+const led = projects.filter((p) => /lider|lead/i.test(p.data.role)).length;
+const techCount = stack.reduce((total, group) => total + group.items.length, 0);
+
+const stats = [
+  { value: projects.length, label: t('stats.projects'), animate: true },
+  { value: led, label: t('stats.led'), animate: true },
+  // El ano no se anima: contar desde cero hasta 2023 no significa nada y
+  // durante un segundo muestra fechas que son mentira.
+  { value: 2023, label: t('stats.since'), animate: false },
+  { value: techCount, label: t('stats.stack'), animate: true },
+];
+
+/* El indice SI va numerado, a diferencia de los titulos de seccion. Aqui
+   el numero informa: dice en que orden aparecen al bajar. Sobre cada
+   titulo no decia nada y era puro adorno. */
+const index = [
+  { href: `${home}#work`, label: t('nav.work') },
+  { href: `${home}#about`, label: t('nav.about') },
+  { href: `${home}#stack`, label: t('nav.stack') },
+  { href: `${home}#services`, label: t('nav.services') },
+  { href: `${home}#contact`, label: t('nav.contact') },
+];
+
+const socials = [
+  { href: site.social.github, icon: 'simple-icons:github', label: 'GitHub' },
+  { href: site.social.linkedin, icon: 'simple-icons:linkedin', label: 'LinkedIn' },
+].filter((s) => Boolean(s.href));
+
 const [firstName, ...rest] = site.name.split(' ');
 const lastName = rest.join(' ');
 ---
@@ -20,98 +69,212 @@ const lastName = rest.join(' ');
     detras del fondo opaco del documento y desaparecen: el campo de
     particulas se renderizaba sin que se viera nada. */
 }
-<section
-  class="relative isolate flex min-h-[100dvh] flex-col justify-center overflow-hidden px-6 pt-32 pb-28"
->
-  {
-    /* Resplandor de vino. `pointer-events-none` para que no intercepte
-      clics, y aria-hidden porque es puramente decorativo. */
-  }
+<section class="relative isolate flex min-h-[100dvh] flex-col overflow-hidden pt-28 sm:pt-32">
   <div
     aria-hidden="true"
-    class="bg-accent/15 parallax-slow pointer-events-none absolute -top-40 -right-40 -z-10 size-[40rem] rounded-full blur-[120px]"
+    class="bg-accent/12 parallax-slow pointer-events-none absolute -top-40 -right-40 -z-10 size-[40rem] rounded-full blur-[120px]"
   >
   </div>
 
-  {
-    /* Campo de particulas WebGL. Se carga tras el primer pintado, asi que
-      el titular es legible antes de que exista una sola particula. */
-  }
   <ParticleField />
 
-  <div class="mx-auto w-full max-w-6xl">
-    <span class="reveal eyebrow" style="--delay: 0ms">
-      <span class="bg-ok inline-block size-1.5 rounded-full" aria-hidden="true"></span>
-      {t('contact.availability')}
-    </span>
+  <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6">
+    <div class="grid flex-1 items-start gap-x-12 gap-y-14 lg:grid-cols-[1fr_19rem]">
+      {/* ---------------- Cartel ---------------- */}
+      <div class="flex flex-col justify-center lg:min-h-[60vh]">
+        {
+          /* Cuerpo atado a la columna, no a la escala general. La escala
+            fluida del sistema (`text-5xl`) llega a 10rem, pensada para un
+            titular a todo el ancho; aqui la columna es dos tercios de la
+            pagina y en caja alta condensada esa medida desbordaba. El vw
+            esta calculado para que la linea mas larga en espanol,
+            "SISTEMAS COMPLETOS,", quepa en una sola linea a 1440px. */
+        }
+        <h1 class="poster reveal text-[clamp(2.5rem,5.8vw,5rem)]" style="--delay: 60ms">
+          <span class="block">{t('hero.claim.line1')}</span>
+          <span class="text-accent block">{t('hero.claim.line2')}</span>
+        </h1>
 
-    <h1 class="mt-8 text-5xl">
-      <span class="reveal block" style="--delay: 90ms">{firstName}</span>
-      {
-        lastName && (
-          <span class="reveal text-accent block" style="--delay: 180ms">
-            {lastName}
-          </span>
-        )
-      }
-    </h1>
-
-    <p class="reveal text-text-muted mt-10 max-w-xl text-lg text-pretty" style="--delay: 290ms">
-      {site.description[lang]}
-    </p>
-
-    <div class="reveal mt-12 flex flex-wrap items-center gap-4" style="--delay: 380ms">
-      {
-        /* Button-in-button: la flecha nunca va suelta junto al texto, va
-          dentro de su propio circulo, a ras del padding interior. Al pasar
-          por encima se desplaza y el boton se hunde ligeramente. */
-      }
-      <a
-        href={`${path(lang)}#contact`}
-        class="group bg-accent text-on-accent hover:bg-accent-hover inline-flex items-center gap-3 rounded-full py-2 pr-2 pl-7 text-base font-medium transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
-      >
-        {t('hero.cta.primary')}
-        <span
-          aria-hidden="true"
-          class="bg-on-accent/15 grid size-9 place-items-center rounded-full"
+        <p
+          class="reveal text-text-muted mt-9 max-w-[46ch] text-lg text-pretty"
+          style="--delay: 200ms"
         >
-          <Icon
-            name="lucide:arrow-right"
-            class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0"
-          />
-        </span>
-      </a>
+          {t('hero.claim.support')}
+        </p>
 
-      {/* ring-outline en lugar de border, por el mismo motivo. */}
-      <a
-        href={`${path(lang)}#work`}
-        class="group ring-outline hover:text-accent inline-flex items-center gap-3 rounded-full py-2 pr-2 pl-7 text-base font-medium transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-[inset_0_0_0_1px_var(--accent)]"
+        <div class="reveal mt-11 flex flex-wrap items-center gap-4" style="--delay: 300ms">
+          {
+            /* La flecha nunca va suelta junto al texto: va dentro de su
+              propio circulo, a ras del padding interior. */
+          }
+          <a
+            href={`${home}#contact`}
+            class="group bg-accent text-on-accent hover:bg-accent-hover inline-flex items-center gap-3 rounded-full py-2 pr-2 pl-7 text-base font-medium transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+          >
+            {t('hero.cta.primary')}
+            <span
+              aria-hidden="true"
+              class="bg-on-accent/15 grid size-9 place-items-center rounded-full"
+            >
+              <Icon
+                name="lucide:arrow-right"
+                class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0"
+              />
+            </span>
+          </a>
+
+          {
+            /* ring-outline en lugar de border: un box-shadow interior no
+              desaparece al promover el elemento a capa de GPU. */
+          }
+          <a
+            href={`${home}#work`}
+            class="group ring-outline hover:text-accent inline-flex items-center gap-3 rounded-full py-2 pr-2 pl-7 text-base font-medium transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-[inset_0_0_0_1px_var(--accent)]"
+          >
+            {t('hero.cta.secondary')}
+            <span
+              aria-hidden="true"
+              class="ring-outline-subtle grid size-9 place-items-center rounded-full"
+            >
+              <Icon
+                name="lucide:arrow-down"
+                class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-y-0.5 motion-reduce:group-hover:translate-y-0"
+              />
+            </span>
+          </a>
+        </div>
+      </div>
+
+      {/* ---------------- Ficha de identidad ---------------- */}
+      {
+        /* Cada bloque va separado por una linea de un pixel en lugar de ir
+          en su propia tarjeta. Cuatro tarjetas apiladas convierten la
+          ficha en un formulario; las lineas agrupan igual de bien y pesan
+          mucho menos visualmente. */
+      }
+      <aside
+        class="reveal border-border/70 flex flex-col gap-7 border-t pt-8 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10"
+        style="--delay: 420ms"
+        aria-label={t('hero.identity')}
       >
-        {t('hero.cta.secondary')}
-        <span
-          aria-hidden="true"
-          class="ring-outline-subtle grid size-9 place-items-center rounded-full"
-        >
-          <Icon
-            name="lucide:arrow-down"
-            class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-y-0.5 motion-reduce:group-hover:translate-y-0"
-          />
-        </span>
-      </a>
+        <div>
+          <p class="font-display text-2xl" style="font-stretch: 85%; font-weight: 800">
+            {firstName}{' '}
+            {lastName && <span class="text-accent">{lastName}</span>}
+          </p>
+          <p class="text-text-muted mt-1.5 text-sm">{t('hero.role')}</p>
+        </div>
+
+        {
+          socials.length > 0 && (
+            <ul class="flex items-center gap-2.5">
+              {socials.map((s) => (
+                <li>
+                  <a
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    class="ring-outline text-text-muted hover:text-accent grid size-10 place-items-center rounded-full transition-colors duration-300 hover:shadow-[inset_0_0_0_1px_var(--accent)]"
+                  >
+                    <Icon name={s.icon} class="size-4" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+
+        <p class="text-text-muted border-border/70 border-t pt-7 text-sm leading-relaxed">
+          {site.description[lang]}
+        </p>
+
+        <p class="text-text-faint flex items-center gap-2 text-sm">
+          <Icon name="lucide:map-pin" class="size-3.5 shrink-0" aria-hidden="true" />
+          {site.location[lang]}
+        </p>
+
+        {
+          /* Indice numerado. En pantallas pequenas sobra: la cabecera ya
+            lleva el mismo menu y repetirlo alarga el hero sin aportar. */
+        }
+        <nav class="border-border/70 hidden border-t pt-7 lg:block" aria-label={t('hero.index')}>
+          <ul class="flex flex-col gap-2.5">
+            {
+              index.map((item, i) => (
+                <li>
+                  <a href={item.href} class="group flex items-baseline gap-3 text-sm">
+                    <span class="text-text-faint group-hover:text-accent w-5 shrink-0 font-mono text-[0.6875rem] tabular-nums transition-colors duration-300">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span class="text-text-muted group-hover:text-text transition-colors duration-300">
+                      {item.label}
+                    </span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        {
+          /* El retrato vive aqui y no en "Sobre mi": una cara en la primera
+            pantalla construye confianza antes de que se lea una sola
+            linea, y repetirla mas abajo solo gastaria espacio. */
+        }
+        {
+          /* El marco se inclina y la imagen se desplaza dentro en sentido
+            contrario. Ese desfase es lo que da volumen a una foto plana. */
+        }
+        <div class="border-border/70 hidden border-t pt-7 lg:block">
+          <div data-photo-depth class="photo-depth">
+            <div class="ring-outline relative overflow-hidden rounded-2xl">
+              <Image
+                src={photo}
+                alt={t('about.photoAlt')}
+                width={640}
+                densities={[1, 2]}
+                loading="eager"
+                class="photo-depth-inner w-full object-cover"
+              />
+              <div
+                aria-hidden="true"
+                class="photo-depth-sheen pointer-events-none absolute inset-0 mix-blend-soft-light"
+              >
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
     </div>
-  </div>
 
-  {/* Indicador de scroll. Solo desde sm: en movil el pulgar ya sabe. */}
-  <div
-    class="text-text-faint absolute inset-x-0 bottom-10 hidden justify-center sm:flex"
-    aria-hidden="true"
-  >
-    <span
-      class="scroll-hint flex flex-col items-center gap-2 font-mono text-[0.625rem] tracking-[0.3em] uppercase"
+    {/* ---------------- Franja de cifras ---------------- */}
+    {
+      /* Cierra la primera pantalla. Es la prueba numerica de lo que afirma
+        el cartel, y ponerla aqui en lugar de en una seccion aparte
+        significa que la afirmacion y su respaldo se ven a la vez. */
+    }
+    <dl
+      class="reveal border-border/70 mt-14 grid grid-cols-2 gap-x-8 gap-y-9 border-t py-10 md:grid-cols-4"
+      style="--delay: 520ms"
     >
-      {t('hero.scroll')}
-      <Icon name="lucide:chevron-down" class="size-3.5" />
-    </span>
+      {
+        stats.map((stat) => (
+          <div>
+            {/* tabular-nums es imprescindible: sin cifras de ancho fijo el
+                numero cambia de anchura en cada fotograma y el bloque
+                entero tiembla mientras cuenta. */}
+            <dd
+              class="font-display text-accent text-4xl tabular-nums"
+              style="font-stretch: 70%; font-weight: 900"
+            >
+              {stat.animate ? <span data-count-to={stat.value}>0</span> : stat.value}
+            </dd>
+            <dt class="text-text-muted mt-2 text-sm">{stat.label}</dt>
+          </div>
+        ))
+      }
+    </dl>
   </div>
 </section>
 
@@ -137,22 +300,6 @@ const lastName = rest.join(' ');
       transform: translateY(0);
       filter: blur(0);
       clip-path: inset(0 0 -25% 0);
-    }
-  }
-
-  .scroll-hint {
-    animation: bob 2.6s var(--ease-fluid) infinite;
-  }
-
-  @keyframes bob {
-    0%,
-    100% {
-      transform: translateY(0);
-      opacity: 0.45;
-    }
-    50% {
-      transform: translateY(0.4rem);
-      opacity: 1;
     }
   }
 

@@ -11,13 +11,7 @@ const projects = await getProjects(lang);
 ---
 
 <section class="mx-auto max-w-6xl px-6 py-28 sm:py-36">
-  <SectionHeading
-    id="work"
-    index="01"
-    eyebrow={t('work.eyebrow')}
-    title={t('work.title')}
-    intro={t('work.intro')}
-  />
+  <SectionHeading id="work" title={t('work.title')} intro={t('work.intro')} />
 
   {
     /* Rejilla 2x2 en la portada. Cuatro proyectos en columna ocupaban casi

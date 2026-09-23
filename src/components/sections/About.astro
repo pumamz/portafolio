@@ -1,10 +1,8 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection, render } from 'astro:content';
 import { getLangFromUrl, useTranslations } from '../../i18n/utils';
 import { site } from '../../config/site';
 import SectionHeading from '../SectionHeading.astro';
-import photo from '../../assets/daniel.jpeg';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -19,13 +17,7 @@ const cvHref = site.cv[lang];
 ---
 
 <section class="mx-auto max-w-6xl px-6 py-28 sm:py-36">
-  <SectionHeading
-    id="about"
-    index="02"
-    eyebrow={t('about.eyebrow')}
-    title={t('about.title')}
-    intro={lead}
-  />
+  <SectionHeading id="about" title={t('about.title')} intro={lead} />
 
   <div class="mt-16 grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
     <div>
@@ -67,32 +59,11 @@ const cvHref = site.cv[lang];
 
     <aside class="space-y-8">
       {
-        /* La foto tambien va en doble bisel: enmarcada como una pieza, no
-          pegada al fondo. width duplica el ancho mostrado para pantallas
-          de alta densidad; Astro genera WebP con srcset desde aqui. */
+        /* Aqui iba el retrato. Se movio al carril del hero: una cara en la
+          primera pantalla construye confianza antes de que se lea una
+          linea, y repetirla en esta seccion solo gastaba espacio que ahora
+          usa la formacion. */
       }
-      {
-        /* El marco se inclina y la imagen se desplaza dentro en sentido
-          contrario. Ese desfase es lo que da volumen a una foto plana. */
-      }
-      <div data-photo-depth class="bezel-shell photo-depth max-w-80">
-        <div class="relative overflow-hidden rounded-[var(--radius-core)]">
-          <Image
-            src={photo}
-            alt={t('about.photoAlt')}
-            width={640}
-            densities={[1, 2]}
-            loading="lazy"
-            class="photo-depth-inner w-full object-cover"
-          />
-          <div
-            aria-hidden="true"
-            class="photo-depth-sheen pointer-events-none absolute inset-0 mix-blend-soft-light"
-          >
-          </div>
-        </div>
-      </div>
-
       <div>
         <h3
           class="text-text-faint border-border border-b pb-2 font-mono text-[0.625rem] tracking-[0.2em] uppercase"

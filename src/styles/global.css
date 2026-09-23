@@ -15,32 +15,43 @@
    percibido entre matices, cosa que HEX/HSL no garantizan.
    ============================================================ */
 :root {
-  /* Neutrales fríos */
+  /* Neutrales con sangre azul.
+     No son grises: llevan matiz 255-258 y la croma SUBE conforme baja la
+     luminosidad. El motivo es que el tema oscuro se construye con estos
+     tonos, y un gris neutro a oscuras se lee como negro sucio. Con croma
+     0.035 en el extremo, el fondo del tema oscuro ES marino (#040c1b) en
+     lugar de un negro con un acento azul encima. La identidad esta en la
+     superficie, no en un boton. */
   --n-0: oklch(1 0 0);
-  --n-50: oklch(0.985 0.002 265);
-  --n-100: oklch(0.967 0.003 265);
-  --n-200: oklch(0.928 0.006 265);
-  --n-300: oklch(0.871 0.008 265);
-  --n-400: oklch(0.704 0.012 265);
-  --n-500: oklch(0.554 0.014 265);
-  --n-600: oklch(0.446 0.014 265);
-  --n-700: oklch(0.371 0.013 265);
-  --n-800: oklch(0.279 0.012 265);
-  --n-900: oklch(0.208 0.011 265);
-  --n-950: oklch(0.145 0.01 265);
-  --n-1000: oklch(0.098 0.008 265);
+  --n-50: oklch(0.985 0.003 255);
+  --n-100: oklch(0.967 0.005 255);
+  --n-200: oklch(0.928 0.008 255);
+  --n-300: oklch(0.871 0.011 255);
+  --n-400: oklch(0.704 0.015 255);
+  --n-500: oklch(0.554 0.018 255);
+  --n-600: oklch(0.446 0.018 255);
+  --n-700: oklch(0.371 0.022 258);
+  --n-800: oklch(0.3 0.03 258);
+  --n-900: oklch(0.25 0.035 258);
+  --n-950: oklch(0.2 0.038 258);
+  --n-1000: oklch(0.155 0.035 258);
 
-  /* Acento: rojo vino / burdeos. Matiz 15 en los cuatro tonos.
-     Cambiar ese 15 reidentifica el sitio entero.
+  /* Acento: azul marino. Matiz 250-255 en los cuatro tonos.
+     Cambiar ese matiz reidentifica el sitio entero.
 
-     Son cuatro tonos y no tres por una razon concreta: un burdeos
-     autentico es oscuro, y sobre fondo oscuro desaparece. El tema claro
-     usa --a-deep; el oscuro necesita --a-base, mas luminoso, para
-     mantener el contraste sin dejar de leerse como vino. */
-  --a-soft: oklch(0.93 0.04 15); /* rosado tenue: fondos, etiquetas */
-  --a-base: oklch(0.6 0.18 15); /* vino luminoso: acento en tema oscuro */
-  --a-deep: oklch(0.42 0.15 15); /* vino profundo: acento en tema claro */
-  --a-shadow: oklch(0.26 0.09 15); /* vino casi negro: superficies */
+     Son cuatro tonos y no tres por una razon concreta: un marino autentico
+     es oscuro, y sobre fondo oscuro desaparece. El tema claro usa
+     --a-deep; el oscuro necesita --a-base, mas luminoso, para mantener el
+     contraste sin dejar de leerse como azul de la misma familia.
+
+     El acento va un par de grados MAS FRIO que los neutrales (250 contra
+     258). Con el mismo matiz, acento y superficie se funden y el azul deja
+     de senalar nada: es el riesgo de una paleta monocroma, y esos ocho
+     grados son lo que lo evita. */
+  --a-soft: oklch(0.93 0.03 250); /* azul palido: fondos, etiquetas */
+  --a-base: oklch(0.68 0.15 250); /* azul luminoso: acento en tema oscuro */
+  --a-deep: oklch(0.42 0.14 255); /* marino: acento en tema claro */
+  --a-shadow: oklch(0.25 0.08 258); /* marino casi negro: superficies */
 
   /* Estados */
   --ok: oklch(0.72 0.17 155);
@@ -65,7 +76,7 @@
   --text: var(--n-950);
   --text-muted: var(--n-600);
   --text-faint: var(--n-500);
-  /* Blanco sobre vino profundo: contraste ~5:1, cumple AA. */
+  /* Blanco sobre marino: contraste 8.2:1, comodamente AA. */
   --text-on-accent: var(--n-50);
 
   --accent: var(--a-deep);
@@ -86,12 +97,12 @@
   --text: var(--n-50);
   --text-muted: var(--n-400);
   --text-faint: var(--n-500);
-  /* Casi negro sobre vino luminoso: contraste ~6:1, cumple AA.
+  /* Casi negro sobre azul luminoso: contraste 6.8:1, cumple AA.
      Invertido respecto al tema claro, por eso este token existe. */
   --text-on-accent: var(--n-1000);
 
   --accent: var(--a-base);
-  --accent-hover: oklch(0.68 0.16 15);
+  --accent-hover: oklch(0.75 0.13 250);
   --accent-surface: var(--a-shadow);
 
   --focus-ring: var(--a-base);
@@ -135,10 +146,28 @@
    de donde sale el caracter "audaz" del diseno.
    ============================================================ */
 @theme {
-  /* Geist en lugar de Inter. Inter es tipograficamente correcta, pero esta
-     en tantos productos que se ha vuelto invisible: no comunica nada.
-     Geist tiene el mismo rigor con formas mas definidas y personalidad. */
-  --font-display: 'Bricolage Grotesque Variable', 'Arial Black', sans-serif;
+  /* Dos familias con trabajos opuestos y ninguna ambiguedad entre ellas.
+
+     Archivo Variable para display, importada por su entrada `wdth`, que
+     trae DOS ejes en un solo fichero: peso 100-900 y anchura 62-125.
+     Eso es lo que permite el registro de cartel — negra y estrecha, del
+     tipo que se usa en senaletica y portadas — sin cargar una segunda
+     fuente para conseguirlo.
+
+     La anchura no es decoracion: es la jerarquia. En lugar de cambiar solo
+     el cuerpo, cada nivel cambia tambien de proporcion, que es como se
+     compone un cartel de verdad.
+
+       h1 / claim   62%  peso 900   caja alta   -> grita
+       h2 / seccion 85%  peso 800   caja normal -> habla
+       h3 / tarjeta 100% peso 700   caja normal -> etiqueta
+
+     Geist para todo lo demas. Neutra, con buen ritmo en parrafo, y aguanta
+     estar al lado de una condensada negra sin competir con ella.
+
+     Regla: Archivo no baja de h3. Si aparece en un parrafo, una etiqueta o
+     un boton, es un error. */
+  --font-display: 'Archivo Variable', 'Arial Narrow', sans-serif;
   --font-sans: 'Geist Variable', system-ui, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
@@ -205,13 +234,43 @@
     0 8px 32px -12px color-mix(in oklch, var(--n-1000) 60%, transparent);
 }
 
-/* Superficie de cristal para elementos fijos. Nunca sobre contenido que
-   se desplaza: el desenfoque obligaria a repintar en cada fotograma. */
-@utility glass {
-  background: color-mix(in oklch, var(--bg) 72%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--text) 8%, transparent);
+/* Registro de cartel para el titular del hero.
+
+   Es el unico sitio del sitio que usa caja alta y el extremo estrecho del
+   eje de anchura. Esa exclusividad es lo que lo hace funcionar: si las
+   seis secciones gritaran igual, no gritaria ninguna.
+
+   `line-height` por debajo de 1 hace que las dos lineas se toquen casi,
+   que es lo que convierte dos frases en un bloque compacto. Solo aguanta
+   en caja alta, donde no hay descendentes que choquen con la linea de
+   abajo. */
+@utility poster {
+  font-family: var(--font-display);
+  font-stretch: 62%;
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+/* Superficie opaca para elementos flotantes (cabecera, tooltips).
+
+   Sustituye a la version de cristal (`backdrop-filter: blur()`) que habia
+   antes. Se retiro por decision de diseno: el cristal esmerilado fecha un
+   sitio en 2021 y, sobre un fondo marino, el desenfoque enturbiaba el
+   texto que pasaba por debajo en lugar de separarlo. Un plano opaco con
+   una linea de contorno separa mejor y no cuesta repintados.
+
+   La sombra es direccional y muy abierta, no el halo gris de rigor: lo que
+   hace que algo parezca flotar es la distancia de la sombra, no su
+   opacidad. */
+@utility floating-surface {
+  background: var(--surface);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklch, var(--text) 10%, transparent),
+    0 1px 2px color-mix(in oklch, var(--n-1000) 5%, transparent),
+    0 16px 40px -24px color-mix(in oklch, var(--n-1000) 35%, transparent);
 }
 
 /* Contorno para elementos que se desplazan por GPU.
@@ -266,15 +325,38 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Los titulos display llevan tracking negativo: a tamanos
-     grandes el espaciado por defecto se ve suelto y descuidado. */
+  /* Cada nivel cambia de anchura ademas de cuerpo y peso. Ver la nota de
+     --font-display: la proporcion es parte de la jerarquia.
+
+     El tracking negativo es leve. Una condensada ya tiene los blancos
+     internos apretados, y restarle mas espacio entre letras junta los
+     astiles hasta que la palabra se lee como una mancha. */
   h1,
   h2,
   h3 {
     font-family: var(--font-display);
-    line-height: 1.05;
-    letter-spacing: -0.03em;
     text-wrap: balance;
+  }
+
+  h1 {
+    font-stretch: 70%;
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+  }
+
+  h2 {
+    font-stretch: 85%;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.015em;
+  }
+
+  h3 {
+    font-stretch: 100%;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
   }
 
   p {

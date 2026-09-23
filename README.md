@@ -79,15 +79,20 @@ Todo el color sale de cuatro variables en
 [`src/styles/global.css`](./src/styles/global.css):
 
 ```css
---a-soft: oklch(0.93 0.04 15);
---a-base: oklch(0.6 0.18 15);
---a-deep: oklch(0.42 0.15 15);
---a-shadow: oklch(0.26 0.09 15);
+--a-soft: oklch(0.93 0.03 250);
+--a-base: oklch(0.68 0.15 250);
+--a-deep: oklch(0.42 0.14 255);
+--a-shadow: oklch(0.25 0.08 258);
 ```
 
-El ultimo numero es el matiz (0-360); **15 es rojo vino**. Cambiarlo en las
+El ultimo numero es el matiz (0-360); **250 es azul marino**. Cambiarlo en las
 cuatro lineas reidentifica el sitio entero, en tema claro y oscuro, sin tocar
 ningun componente.
+
+Los neutrales tambien llevan matiz azul y suben de croma conforme se oscurecen,
+de modo que el fondo del tema oscuro **es** marino y no un negro con un boton
+azul encima. Si cambias el acento, muevelos con el o dejaran de pertenecer a la
+misma familia.
 
 La unica pieza que no sigue esa variable es
 [`public/og-default.png`](./public/og-default.png), la imagen que se ve al

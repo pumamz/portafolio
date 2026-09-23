@@ -61,26 +61,32 @@ El color de acento es **escaso por diseno**. Cuando todo destaca, nada destaca.
 - Se reserva para la accion que quieres que ocurra: la CTA primaria.
 - Los enlaces de navegacion usan `text` con subrayado, no acento.
 
-### El acento: rojo vino
+### El acento: azul marino
 
-Decision cerrada. Matiz **15** en OKLCH, con **cuatro** tonos en vez de tres.
+Matiz **250-255** en OKLCH, con **cuatro** tonos en vez de tres.
 
-| Primitivo    | Valor                 | Para que                          |
-| ------------ | --------------------- | --------------------------------- |
-| `--a-soft`   | `oklch(0.93 0.04 15)` | Fondos tenues y etiquetas (claro) |
-| `--a-base`   | `oklch(0.60 0.18 15)` | Acento en **tema oscuro**         |
-| `--a-deep`   | `oklch(0.42 0.15 15)` | Acento en **tema claro**          |
-| `--a-shadow` | `oklch(0.26 0.09 15)` | Superficies tenues (oscuro)       |
+| Primitivo    | Valor                  | Para que                          |
+| ------------ | ---------------------- | --------------------------------- |
+| `--a-soft`   | `oklch(0.93 0.03 250)` | Fondos tenues y etiquetas (claro) |
+| `--a-base`   | `oklch(0.68 0.15 250)` | Acento en **tema oscuro**         |
+| `--a-deep`   | `oklch(0.42 0.14 255)` | Acento en **tema claro**          |
+| `--a-shadow` | `oklch(0.25 0.08 258)` | Superficies tenues (oscuro)       |
 
-**Por que cuatro y no tres.** Un burdeos autentico es oscuro por definicion, y
-sobre un fondo casi negro simplemente desaparece. El tema claro usa `--a-deep`
-(contraste ~5:1 con blanco encima); el oscuro necesita `--a-base`, mas luminoso,
-para seguir siendo legible sin dejar de leerse como vino.
+**Por que cuatro y no tres.** Un marino autentico es oscuro por definicion, y
+sobre un fondo oscuro simplemente desaparece. El tema claro usa `--a-deep`
+(contraste 8.2:1 con blanco encima); el oscuro necesita `--a-base`, mas
+luminoso, para seguir siendo legible sin salirse de la familia del azul.
+
+**Por que el acento no comparte matiz con los neutrales.** Los neutrales
+tambien llevan sangre azul (matiz 258), asi que el acento va unos grados mas
+frio, en 250-255. Con el mismo matiz, acento y superficie se funden y el azul
+deja de senalar nada: es el riesgo especifico de una paleta monocroma, y esa
+separacion es lo que lo evita.
 
 **Consecuencia importante:** `--text-on-accent` se **invierte** entre temas.
-Sobre el vino profundo del tema claro va texto blanco; sobre el vino luminoso
-del tema oscuro va texto casi negro. Por eso existe ese token: escribir
-`text-white` a mano sobre un boton de acento romperia el contraste en un tema.
+Sobre el marino del tema claro va texto blanco; sobre el azul luminoso del tema
+oscuro va texto casi negro. Por eso existe ese token: escribir `text-white` a
+mano sobre un boton de acento romperia el contraste en un tema.
 
 ---
 

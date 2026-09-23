@@ -1,29 +1,32 @@
 ---
 interface Props {
-  /** Numero de seccion, en monoespaciada. Aporta el aire editorial. */
-  index: string;
-  /** Etiqueta corta sobre el titulo. Da entrada antes del salto de escala. */
-  eyebrow?: string;
   title: string;
   intro?: string;
   /** id del ancla para la navegacion. */
   id: string;
+  /**
+   * Etiqueta corta sobre el titulo. OPCIONAL Y EXCEPCIONAL.
+   *
+   * Antes la llevaban las seis secciones, junto con un numero de orden.
+   * Seis etiquetas en versalitas y seis numeros no informan de nada: son
+   * el mismo molde repetido, y es lo que hace que una pagina se lea como
+   * plantilla. Una etiqueta solo se pone si dice algo que el titulo no
+   * dice ya, y como mucho en una seccion.
+   */
+  eyebrow?: string;
 }
 
-const { index, eyebrow, title, intro, id } = Astro.props;
+const { title, intro, id, eyebrow } = Astro.props;
 ---
 
 {
   /* scroll-mt compensa la altura del header flotante: sin esto el titulo
     queda tapado al saltar desde el menu. */
 }
-<div id={id} class="reveal-on-scroll scroll-mt-32">
-  <span class="eyebrow">
-    <span class="text-accent" aria-hidden="true">{index}</span>
-    {eyebrow ?? title}
-  </span>
+<div id={id} class="scroll-mt-32">
+  {eyebrow && <p class="text-accent mb-5 text-sm font-medium">{eyebrow}</p>}
 
-  <h2 class="mt-6 text-4xl">{title}</h2>
+  <h2 class="text-4xl">{title}</h2>
 
-  {intro && <p class="text-text-muted mt-6 max-w-prose text-lg text-pretty">{intro}</p>}
+  {intro && <p class="text-text-muted mt-6 max-w-[58ch] text-lg text-pretty">{intro}</p>}
 </div>

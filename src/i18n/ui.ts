@@ -34,10 +34,17 @@ export const ui = {
     'hero.role': 'Ingeniero de Software',
     'hero.cta.primary': 'Hablemos',
     'hero.cta.secondary': 'Ver proyectos',
-    'hero.scroll': 'Desplaza',
+    /* El titular va en dos lineas y la segunda se pinta en el acento.
+       Se parten aqui y no con un <br> dentro del componente porque el
+       punto de corte cambia entre idiomas. */
+    'hero.claim.line1': 'Sistemas completos,',
+    'hero.claim.line2': 'no prototipos.',
+    'hero.claim.support':
+      'Cuatro sistemas construidos de punta a punta: backend, interfaz y despliegue.',
+    'hero.identity': 'Perfil',
+    'hero.index': 'Secciones',
 
     'work.title': 'Proyectos seleccionados',
-    'work.eyebrow': 'Proyectos',
     'work.intro':
       'Sistemas completos, cada uno con un requisito real detras. Esto es lo que resolvia cada uno.',
     'work.viewCase': 'Ver caso completo',
@@ -54,25 +61,21 @@ export const ui = {
     'work.indexTitle': 'Proyectos',
 
     'about.title': 'Sobre mi',
-    'about.eyebrow': 'Perfil',
     'about.education': 'Formacion',
     'about.downloadCv': 'Descargar CV',
     'about.photoAlt': 'Retrato de Daniel Puma',
 
     'stack.title': 'Con que trabajo',
-    'stack.eyebrow': 'Stack',
     'stack.intro':
       'Solo tecnologias que he usado en los proyectos de arriba. Pasa el cursor para ver donde.',
     'stack.sphereLabel': 'Esfera interactiva de tecnologias',
     'stack.sphereHint': 'Arrastra para girar',
 
     'timeline.title': 'Como llegue hasta aqui',
-    'timeline.eyebrow': 'Trayectoria',
     'timeline.intro':
       'Los proyectos sueltos no cuentan una progresion. En orden si: primer sistema en produccion, primera integracion con un organismo publico, primer equipo a cargo.',
 
     'services.title': 'En que puedo ayudarte',
-    'services.eyebrow': 'Servicios',
     'services.intro':
       'Trabajo por encargo en proyectos donde ya he construido algo parecido. Si lo que necesitas no esta en esta lista, te lo digo antes de empezar.',
     'services.cta': 'Cuentame tu proyecto',
@@ -113,10 +116,13 @@ export const ui = {
     'hero.role': 'Software Engineer',
     'hero.cta.primary': "Let's talk",
     'hero.cta.secondary': 'View work',
-    'hero.scroll': 'Scroll',
+    'hero.claim.line1': 'Complete systems,',
+    'hero.claim.line2': 'not prototypes.',
+    'hero.claim.support': 'Four systems built end to end: backend, interface and deployment.',
+    'hero.identity': 'Profile',
+    'hero.index': 'Sections',
 
     'work.title': 'Selected work',
-    'work.eyebrow': 'Work',
     'work.intro':
       'Complete systems, each with a real constraint behind it. Here is what each one solved.',
     'work.viewCase': 'Read case study',
@@ -133,24 +139,20 @@ export const ui = {
     'work.indexTitle': 'Work',
 
     'about.title': 'About',
-    'about.eyebrow': 'Profile',
     'about.education': 'Education',
     'about.downloadCv': 'Download CV',
     'about.photoAlt': 'Portrait of Daniel Puma',
 
     'stack.title': 'What I work with',
-    'stack.eyebrow': 'Stack',
     'stack.intro': 'Only technologies I have used in the projects above. Hover to see where.',
     'stack.sphereLabel': 'Interactive technology sphere',
     'stack.sphereHint': 'Drag to rotate',
 
     'timeline.title': 'How I got here',
-    'timeline.eyebrow': 'Trajectory',
     'timeline.intro':
       'Projects on their own do not show progression. In order they do: first system in production, first integration with a public authority, first team to lead.',
 
     'services.title': 'How I can help',
-    'services.eyebrow': 'Services',
     'services.intro':
       'I take freelance work in areas where I have already built something similar. If what you need is not on this list, I will tell you before we start.',
     'services.cta': 'Tell me about your project',
