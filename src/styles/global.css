@@ -616,8 +616,17 @@
    hoja global: la guarda no hacia nada y las medidas salian tomadas con
    una letra a medio entrar. El selector de tipo `html` delante sube a
    0,2,1 y desempata. */
-html[data-morph-measuring] [data-anima] {
-  animation-name: none;
+[data-morph-measuring] [data-anima] {
+  /* `!important` a conciencia, y es el caso para el que existe.
+
+     Esto no es una preferencia de estilo: es un interruptor que tiene que
+     ganar SIEMPRE, porque si pierde no se rompe la apariencia sino la
+     medida, y el sintoma es una pieza aterrizando desviada sin ningun
+     error. Ya perdio dos veces por empate de especificidad contra reglas
+     de componente, que Astro emite con un atributo de ambito y van
+     siempre despues en la cascada. Subir la cuenta de selectores es una
+     carrera que se vuelve a perder con la siguiente regla que se escriba. */
+  animation-name: none !important;
 }
 
 /* UN SOLO LANDMARK DE NAVEGACION A LA VEZ.

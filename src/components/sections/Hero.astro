@@ -392,8 +392,25 @@ const nav = [
      La cascada letra a letra se movio a la afirmacion. Aqui vuelve el
      revelado del conjunto, que a este cuerpo funciona mejor: once letras
      de 250 px entrando por turnos se leen como desorden, no como cartel. */
-  .name-in {
+  /* NADA ENTRA HASTA QUE LAS TIPOGRAFIAS ESTAN.
+
+     Con `font-display: swap` la pagina pinta con la fuente de reserva y
+     cambia a la buena al llegar. Ese cambio recoloca los bloques: medido,
+     el nombre bajaba de sitio a los ~300 ms, justo a mitad de su entrada,
+     y se veia como una animacion que arranca, se corta y vuelve a
+     empezar. Arrancando despues del cambio no hay nada que se recoloque.
+
+     Por eso el estado de partida es invisible y la animacion vive detras
+     de la marca. El <head> la pone con red de seguridad a los 1.5 s, asi
+     que un fallo de red no deja el hero en blanco. */
+  .name-in,
+  .reveal {
+    opacity: 0;
+  }
+
+  :global(html[data-fonts='ready']) .name-in {
     display: block;
+    opacity: 1;
     animation:
       name-wipe 1000ms var(--ease-fluid) backwards,
       name-focus 1000ms var(--ease-fluid) backwards;
@@ -484,9 +501,13 @@ const nav = [
      cachear la capa. Esto es una mancha difusa sin un solo borde. */
   @media (prefers-reduced-motion: reduce) {
     .name-in,
+    .reveal,
+    :global(html[data-fonts='ready']) .name-in,
+    :global(html[data-fonts='ready']) .reveal,
     .claim-in,
-    .bob,
-    .float-idle {
+    .float-idle,
+    .bob {
+      opacity: 1;
       animation: none;
     }
   }
@@ -507,7 +528,8 @@ const nav = [
      `backwards` aplica el fotograma inicial SOLO durante el retardo —que
      es para lo que hace falta, para que no parpadee antes de entrar— y al
      acabar suelta el elemento a sus estilos normales. */
-  .reveal {
+  :global(html[data-fonts='ready']) .reveal {
+    opacity: 1;
     animation: reveal 900ms var(--ease-fluid) backwards;
     animation-delay: var(--delay, 0ms);
   }

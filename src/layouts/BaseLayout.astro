@@ -120,6 +120,32 @@ const jsonLd = {
       })();
     </script>
 
+    <!-- Las entradas del hero esperan a las tipografias.
+
+         Con `font-display: swap`, la pagina pinta con la fuente de
+         reserva y cambia a la buena cuando llega. Ese cambio recoloca los
+         bloques, y si cae a mitad de la animacion de entrada se ve como si
+         el nombre arrancara, se cortara y volviera a empezar: medido,
+         bajaba de sitio a los ~300 ms. Arrancando despues, no hay salto
+         que ver.
+
+         Con red de seguridad: si las fuentes no llegan, la marca se pone
+         igual a los 1.5 s. Sin ella, un fallo de red dejaria el hero en
+         blanco para siempre. -->
+    <script is:inline>
+      (() => {
+        const marcar = () => {
+          document.documentElement.dataset.fonts = 'ready';
+        };
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(marcar);
+        } else {
+          marcar();
+        }
+        setTimeout(marcar, 1500);
+      })();
+    </script>
+
     <!-- Tema: se aplica ANTES del primer pintado para evitar el
          destello blanco al cargar en modo oscuro. Por eso es inline
          y sincrono, no un componente. -->
