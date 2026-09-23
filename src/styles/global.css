@@ -603,6 +603,31 @@
   }
 }
 
+/* LAS ENTRADAS DEL HERO ESPERAN A LAS TIPOGRAFIAS.
+
+   Con `font-display: swap` la pagina pinta con la fuente de reserva y
+   cambia a la buena al llegar; ese cambio recoloca los bloques y el
+   nombre bajaba de sitio a mitad de su entrada. Arrancando despues, no
+   hay nada que se recoloque.
+
+   SE PAUSA LA ANIMACION, no se toca ninguna propiedad visual. Con
+   `opacity` esta espera le ganaba en especificidad al fundido de salida
+   del hero; con `visibility`, al relevo del viaje, y se veian dos nombres
+   en el carril. Una animacion pausada con relleno `backwards` retiene su
+   primer fotograma, asi que el efecto es el mismo sin pisar a nadie.
+
+   Van aqui y no en el componente porque el ambito de Astro reescribe los
+   selectores y perdia el prefijo `html[...]` en el primero de la lista. */
+.name-in,
+.reveal {
+  animation-play-state: paused;
+}
+
+html[data-fonts='ready'] .name-in,
+html[data-fonts='ready'] .reveal {
+  animation-play-state: running;
+}
+
 /* Mientras se mide, nada de adorno se mueve.
 
    `hero-morph.ts` pone esta marca justo alrededor de sus medidas. Sin

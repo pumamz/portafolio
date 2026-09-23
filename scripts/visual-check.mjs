@@ -301,6 +301,29 @@ async function run() {
   });
   check('Las estrellas toman el color del tema', starRgb !== '160, 176, 200', starRgb);
 
+  /* ---------------- El hero se apaga del todo al aterrizar -----------
+     Lo que se queda en el hero tiene que desaparecer cuando el carril ya
+     esta formado. Fallo una vez de forma silenciosa: una regla nueva de
+     entrada declaro `opacity: 1` y le gano en especificidad a la del
+     fundido, asi que el texto de apoyo y las dos llamadas a la accion se
+     quedaban visibles encima del carril. */
+  await scrollTo(page, travel);
+  const restos = await page.evaluate(() => {
+    const op = (el) => {
+      let o = 1;
+      let n = el;
+      while (n && n !== document.body) {
+        o *= Number(getComputedStyle(n).opacity);
+        n = n.parentElement;
+      }
+      return o;
+    };
+    return [...document.querySelectorAll('[data-hero-fade]')]
+      .filter((el) => op(el) > 0.02)
+      .map((el) => (el.textContent.trim() || el.tagName).slice(0, 20).replace(/\s+/g, ' '));
+  });
+  check('Nada del hero sobrevive al aterrizaje', restos.length === 0, restos.join(' | ') || 'nada');
+
   /* ---------------- La guarda de medicion manda de verdad ------------
      `hero-morph.ts` apaga las animaciones de adorno mientras mide. Si esa
      regla pierde por especificidad —paso: empataba con la que Astro emite
