@@ -31,7 +31,7 @@ export const ui = {
     'nav.toggleTheme': 'Cambiar tema',
     'nav.toggleMenu': 'Abrir menu',
 
-    'hero.role': 'Ingeniero de Software',
+    'hero.role': 'Desarrollador Full-Stack',
     'hero.cta.primary': 'Hablemos',
     'hero.cta.secondary': 'Ver proyectos',
     /* El titular va en dos lineas y la segunda se pinta en el acento.
@@ -114,7 +114,7 @@ export const ui = {
     'nav.toggleTheme': 'Toggle theme',
     'nav.toggleMenu': 'Open menu',
 
-    'hero.role': 'Software Engineer',
+    'hero.role': 'Full-Stack Developer',
     'hero.cta.primary': "Let's talk",
     'hero.cta.secondary': 'View work',
     'hero.claim.line1': 'Complete systems,',

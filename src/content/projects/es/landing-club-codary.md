@@ -25,6 +25,7 @@ stack:
   - React
   - Tailwind CSS
   - Vercel
+repoUrl: https://github.com/pumamz/codary-web
 liveUrl: https://www.codary.club/
 featured: false
 order: 4

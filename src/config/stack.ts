@@ -102,6 +102,12 @@ export const stack: StackGroup[] = [
         brand: { light: '#C3002F', dark: '#F0396A' },
       },
       {
+        name: 'Astro',
+        icon: 'simple-icons:astro',
+        note: { es: 'Este sitio', en: 'This site' },
+        brand: { light: '#B5346E', dark: '#FF5D01' },
+      },
+      {
         name: 'Tailwind CSS',
         icon: 'simple-icons:tailwindcss',
         note: { es: 'Psicopedagogico y Codary', en: 'UDIPSAI and Codary' },
@@ -169,6 +175,12 @@ export const stack: StackGroup[] = [
         name: 'Railway',
         icon: 'simple-icons:railway',
         note: { es: 'Entornos de prueba', en: 'Staging environments' },
+      },
+      {
+        name: 'Docker',
+        icon: 'simple-icons:docker',
+        note: { es: 'Entornos del psicopedagogico', en: 'UDIPSAI environments' },
+        brand: { light: '#0B62B0', dark: '#2496ED' },
       },
       {
         name: 'Linux',

@@ -21,6 +21,10 @@ export const site = {
     en: 'Full-Stack Developer',
   },
 
+  /** Como se presenta en el carril y en "Sobre mi". Es mas preciso que
+   *  `jobTitle`, que va en el <title> y en los metadatos, donde un titulo
+   *  corto posiciona mejor. Los dos deben decir lo mismo. */
+
   /** Debe coincidir con `site` en astro.config.mjs. */
   url: 'https://pumamz.vercel.app',
 

@@ -32,6 +32,7 @@ stack:
   - TypeScript
   - Tailwind CSS
   - PostgreSQL
+repoUrl: https://github.com/pumamz/udipsai
 featured: true
 order: 1
 draft: false

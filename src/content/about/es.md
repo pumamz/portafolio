@@ -5,7 +5,7 @@ education:
   degree: Ingenieria en Software
   institution: Universidad Catolica de Cuenca
   period: 2023 - actualidad
-  detail: Quinto ciclo aprobado
+  detail: Septimo ciclo, en curso
 facts:
   - label: Ubicacion
     value: Cuenca, Ecuador

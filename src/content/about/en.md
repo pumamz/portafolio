@@ -5,7 +5,7 @@ education:
   degree: Software Engineering
   institution: Universidad Catolica de Cuenca
   period: 2023 - present
-  detail: Fifth semester completed
+  detail: Seventh semester, in progress
 facts:
   - label: Location
     value: Cuenca, Ecuador
