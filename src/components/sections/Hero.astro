@@ -41,14 +41,21 @@ const home = path(lang);
 const [firstName, ...rest] = site.name.split(' ');
 const lastName = rest.join(' ');
 
-/* El nombre se parte en letras para que entren una a una.
-   El indice de cada una viaja en una variable CSS y de ahi sale su
-   retardo, lo que evita escribir una regla por letra. Trocearlo no afecta
-   a un lector de pantalla: el bloque entero es aria-hidden y el nombre
-   completo lo anuncia el aria-label del h1. */
-const letras = [
-  ...[...firstName].map((ch) => ({ ch, acento: false })),
-  ...[...lastName].map((ch) => ({ ch, acento: true })),
+/* La AFIRMACION se parte en letras para que entren una a una.
+
+   El indice de cada letra viaja en una variable CSS y de ahi sale su
+   retardo, lo que evita escribir una regla por letra. El desfase es mas
+   corto que el que llevaba el nombre porque aqui hay treinta y tantos
+   caracteres y no diez: con 42 ms la frase tardaria mas de un segundo y
+   medio en acabar de entrar.
+
+   Trocear no afecta a un lector de pantalla: el bloque es aria-hidden y
+   la frase entera va aparte en una etiqueta para lectura. */
+const claim1 = t('hero.claim.line1');
+const claim2 = t('hero.claim.line2');
+const claimLetras = [
+  ...[...claim1].map((ch) => ({ ch, acento: false })),
+  ...[...` ${claim2}`].map((ch) => ({ ch, acento: true })),
 ];
 
 const year = new Date().getFullYear();
@@ -116,6 +123,7 @@ const nav = [
     <div
       aria-hidden="true"
       data-hero-exit
+      data-reactive-grid-target
       class="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
     >
       {
@@ -187,9 +195,20 @@ const nav = [
     {/* ---------------- Cabecera de la composicion ---------------- */}
     <div class="flex flex-wrap items-start justify-between gap-6">
       <div data-hero-fade class="reveal" style="--delay: 60ms">
-        <p class="font-display text-lg sm:text-xl" style="font-stretch: 85%; font-weight: 700">
-          {t('hero.claim.line1')}{' '}
-          <span class="text-accent">{t('hero.claim.line2')}</span>
+        <p
+          class="font-display text-lg sm:text-xl"
+          style="font-stretch: 85%; font-weight: 700"
+          aria-label={`${claim1} ${claim2}`}
+        >
+          <span class="claim-in" data-anima aria-hidden="true">
+            {
+              claimLetras.map((l, i) => (
+                <span class:list={['ltr', l.acento && 'text-accent']} style={`--i:${i}`} data-anima>
+                  {l.ch === ' ' ? '\u00A0' : l.ch}
+                </span>
+              ))
+            }
+          </span>
         </p>
         <p class="text-text-faint mt-2 font-mono text-[0.6875rem] tracking-[0.2em] uppercase">
           {t('hero.meta')} / {year}
@@ -276,17 +295,19 @@ const nav = [
         }
         <span class="name-in" data-anima aria-hidden="true">
           {
-            letras.map((l, i) => (
+            [...firstName].map((ch, i) => (
+              <span class="inline-block" style={`--i:${i}`}>
+                {ch}
+              </span>
+            ))
+          }
+          {
+            [...lastName].map((ch, i) => (
               <span
-                class:list={[
-                  'ltr',
-                  l.acento && 'text-accent',
-                  i === firstName.length && 'ml-[0.26em]',
-                ]}
-                style={`--i:${i}`}
-                data-anima
+                class:list={['text-accent inline-block', i === 0 && 'ml-[0.26em]']}
+                style={`--i:${firstName.length + i}`}
               >
-                {l.ch}
+                {ch}
               </span>
             ))
           }
@@ -327,7 +348,8 @@ const nav = [
         >
           <Icon
             name="lucide:arrow-down"
-            class="size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-y-0.5 motion-reduce:group-hover:translate-y-0"
+            data-anima
+            class="bob size-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-y-0.5 motion-reduce:group-hover:translate-y-0"
             aria-hidden="true"
           />
           {t('hero.cta.secondary')}
@@ -384,18 +406,39 @@ const nav = [
      segunda medida cae justo dentro de esta animacion. Con un `transform`
      o un `scale` aqui, mediria una caja a medio animar y el nombre
      aterrizaria descolocado en el carril. */
+  /* EL NOMBRE: revelado limpio de una pieza.
+
+     La cascada letra a letra se movio a la afirmacion. Aqui vuelve el
+     revelado del conjunto, que a este cuerpo funciona mejor: once letras
+     de 250 px entrando por turnos se leen como desorden, no como cartel. */
   .name-in {
     display: block;
-    /* El recorte del conjunto es lo que hace que las letras emerjan de
-       una linea en lugar de aparecer flotando en mitad del aire. */
-    animation: name-wipe 900ms var(--ease-fluid) backwards;
+    animation:
+      name-wipe 1000ms var(--ease-fluid) backwards,
+      name-focus 1000ms var(--ease-fluid) backwards;
     clip-path: inset(-25% 0 -25% 0);
+  }
+
+  @keyframes name-focus {
+    from {
+      opacity: 0;
+      filter: blur(26px);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+    }
+  }
+
+  /* LA AFIRMACION: letra a letra. */
+  .claim-in {
+    display: inline-block;
   }
 
   .ltr {
     display: inline-block;
     /* El retardo sale del indice, asi no hace falta una regla por letra. */
-    animation: ltr-in 820ms var(--ease-fluid) calc(160ms + var(--i) * 42ms) backwards;
+    animation: ltr-in 620ms var(--ease-fluid) calc(240ms + var(--i) * 16ms) backwards;
   }
 
   @keyframes name-wipe {
@@ -448,6 +491,40 @@ const nav = [
     }
   }
 
+  /* La flecha que invita a bajar late despacio. Es una pista de uso, no
+     un adorno: lo que se mueve en una pagina quieta es lo que se mira. */
+  .bob {
+    animation: bob 3.2s var(--ease-fluid) infinite;
+  }
+
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.55;
+    }
+    50% {
+      transform: translateY(0.3rem);
+      opacity: 1;
+    }
+  }
+
+  /* El acento del nombre respira. Solo `text-shadow`, que no toca la
+     caja: el nombre es una pieza que vuela y su medida no puede cambiar. */
+  .name-in :global(.text-accent) {
+    animation: glow 7s ease-in-out infinite;
+  }
+
+  @keyframes glow {
+    0%,
+    100% {
+      text-shadow: 0 0 0 transparent;
+    }
+    50% {
+      text-shadow: 0 0 2.5rem color-mix(in oklch, var(--accent) 45%, transparent);
+    }
+  }
+
   .aurora {
     animation: aurora 24s var(--ease-fluid) infinite;
   }
@@ -466,7 +543,10 @@ const nav = [
 
   @media (prefers-reduced-motion: reduce) {
     .name-in,
+    .name-in :global(.text-accent),
+    .claim-in,
     .ltr,
+    .bob,
     .float-idle,
     .aurora {
       animation: none;

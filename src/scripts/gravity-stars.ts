@@ -173,7 +173,15 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
   }
 
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    /* Tope 1.5 y no 2.
+
+       El lienzo cubre la ventana entera y hay que componerlo en cada
+       dibujo: a densidad 2 son casi seis millones de pixeles. Bajar a 1.5
+       quita un 44% de ese trabajo. Las estrellas no pierden nitidez por
+       esto —el sprite se genera con el MISMO dpr, asi que el estampado
+       sigue siendo uno a uno— solo se pintan con algo menos de
+       resolucion, que en un punto de 13 px con halo no se distingue. */
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     width = window.innerWidth;
     height = window.innerHeight;
     canvas!.width = Math.floor(width * dpr);
@@ -257,9 +265,22 @@ export function initGravityStars(options: GravityStarsOptions = {}): void {
   let frame = 0;
   let running = false;
 
-  function loop() {
-    draw();
+  /* A ~30 dibujos por segundo, no a 60.
+
+     El coste de este efecto no son las estrellas —son sprites de 13 px—
+     sino limpiar y componer un lienzo del tamano de la ventana a densidad
+     doble: casi seis millones de pixeles por fotograma. Medido, se comia
+     13 fps de los 60 con la pagina en reposo.
+
+     A la velocidad a la que derivan (bastante menos de un pixel por
+     fotograma) la mitad de dibujos no se distingue, y el presupuesto de
+     fotogramas se reparte con el resto de la pagina. */
+  let ultimoDibujo = 0;
+  function loop(t: number) {
     frame = requestAnimationFrame(loop);
+    if (t - ultimoDibujo < 32) return;
+    ultimoDibujo = t;
+    draw();
   }
 
   function start() {

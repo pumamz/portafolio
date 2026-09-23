@@ -106,10 +106,13 @@ async function run() {
      Se lee --grid-x en la seccion antes y despues de mover el raton. Si
      no cambia, el efecto esta muerto aunque la clase este puesta: es
      justo el fallo que tuvo este proyecto. */
+  /* Las variables se escriben en un subarbol pequeno, no en la seccion:
+     escribirlas en la seccion invalidaria el estilo del hero entero en
+     cada fotograma. Hay que leerlas donde de verdad viven. */
   const readGrid = () =>
     page.evaluate(() => {
-      const s = document.querySelector('[data-reactive-grid]');
-      return s ? getComputedStyle(s).getPropertyValue('--grid-x').trim() : 'sin seccion';
+      const s = document.querySelector('[data-reactive-grid-target]');
+      return s ? getComputedStyle(s).getPropertyValue('--grid-x').trim() : 'sin destino';
     });
   await page.mouse.move(300, 300);
   await page.waitForTimeout(150);
@@ -276,6 +279,16 @@ async function run() {
     return `${d[0]}, ${d[1]}, ${d[2]}`;
   });
   check('Las estrellas toman el color del tema', starRgb !== '160, 176, 200', starRgb);
+
+  /* ---------------- El hero no se queda quieto ----------------------
+     Sin tocar el raton, el foco de fondo tiene que seguir derivando: es lo
+     que evita que la pagina en reposo parezca una captura de pantalla. */
+  await page.mouse.move(700, 400);
+  await page.waitForTimeout(1900); // pasa el plazo de inactividad
+  const q1 = await readGrid();
+  await page.waitForTimeout(900);
+  const q2 = await readGrid();
+  check('El foco deriva solo en reposo', q1 !== q2 && q2 !== '', `${q1} -> ${q2}`);
 
   /* ---------------- La guarda de medicion manda de verdad ------------
      `hero-morph.ts` apaga las animaciones de adorno mientras mide. Si esa
