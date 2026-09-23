@@ -183,6 +183,19 @@ export function initHeroMorph(): void {
    * seccion, el numero es el mismo se mida cuando se mida.
    */
   function measure() {
+    /* MEDIR CON LAS ANIMACIONES DE ADORNO APAGADAS.
+
+       El hero tiene entrada y movimiento en reposo, y esta funcion se
+       ejecuta otra vez cuando llegan las tipografias: esa segunda medida
+       cae justo dentro de la entrada. Midiendo con una animacion a medio
+       camino, el desplazamiento guardado es el de una caja que no existe y
+       la pieza aterriza descolocada.
+
+       Con la marca puesta, una regla de global.css deja en `none` la
+       animacion de todo lo que decora. Es lo que permite que la entrada
+       use transform sin poner en riesgo el aterrizaje. */
+    html.dataset.morphMeasuring = '';
+
     pairs.forEach((p) => {
       p.el.style.transform = '';
     });
@@ -217,6 +230,8 @@ export function initHeroMorph(): void {
       // pieza: la esquina se queda quieta y solo encoge hacia dentro.
       p.el.style.transformOrigin = 'left top';
     });
+
+    delete html.dataset.morphMeasuring;
   }
 
   /**

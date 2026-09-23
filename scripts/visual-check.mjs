@@ -277,6 +277,22 @@ async function run() {
   });
   check('Las estrellas toman el color del tema', starRgb !== '160, 176, 200', starRgb);
 
+  /* ---------------- La guarda de medicion manda de verdad ------------
+     `hero-morph.ts` apaga las animaciones de adorno mientras mide. Si esa
+     regla pierde por especificidad —paso: empataba con la que Astro emite
+     para el estilo del componente, y en un empate gana la que va despues—
+     las medidas se toman con una letra a medio entrar y las piezas
+     aterrizan desviadas. Aqui se comprueba el efecto, no la regla. */
+  const guarda = await page.evaluate(() => {
+    const el = document.querySelector('[data-anima]');
+    if (!el) return 'sin elementos decorados';
+    document.documentElement.dataset.morphMeasuring = '';
+    const conGuarda = getComputedStyle(el).animationName;
+    delete document.documentElement.dataset.morphMeasuring;
+    return conGuarda;
+  });
+  check('La guarda de medicion apaga el adorno', guarda === 'none', guarda);
+
   /* ---------------- El carril no asoma durante el hero ---------------
      Un filete puesto como `border` de un contenedor se pinta siempre,
      por mucho que sus hermanos esten a opacidad cero: asi se colaba un

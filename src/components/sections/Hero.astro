@@ -41,6 +41,16 @@ const home = path(lang);
 const [firstName, ...rest] = site.name.split(' ');
 const lastName = rest.join(' ');
 
+/* El nombre se parte en letras para que entren una a una.
+   El indice de cada una viaja en una variable CSS y de ahi sale su
+   retardo, lo que evita escribir una regla por letra. Trocearlo no afecta
+   a un lector de pantalla: el bloque entero es aria-hidden y el nombre
+   completo lo anuncia el aria-label del h1. */
+const letras = [
+  ...[...firstName].map((ch) => ({ ch, acento: false })),
+  ...[...lastName].map((ch) => ({ ch, acento: true })),
+];
+
 const year = new Date().getFullYear();
 
 const socials = [
@@ -115,6 +125,17 @@ const nav = [
         el hijo gana a la heredada y el foco se queda clavado en el
         centro. Paso exactamente eso. */
       }
+      {
+        /* Mancha de acento que deriva despacio. El campo de estrellas ya se
+        mueve, pero es un movimiento uniforme; esto da una corriente lenta
+        de fondo que cambia la pantalla sin que se note el bucle. */
+      }
+      <div
+        data-anima
+        class="aurora bg-accent/12 absolute top-1/4 left-1/3 size-[38rem] rounded-full blur-[130px]"
+      >
+      </div>
+
       <div class="spotlight text-text absolute inset-0"></div>
       <div class="grain absolute inset-0"></div>
     </div>
@@ -214,8 +235,13 @@ const nav = [
           {t('hero.claim.support')}
         </p>
 
+        {
+          /* El flotar va en el HIJO. La pieza que vuela lleva el transform
+            que escribe el script, y una animacion CSS sobre transform
+            ganaria en la cascada y se lo comeria. */
+        }
         <div data-morph="photo" class="hidden w-40 shrink-0 sm:block lg:w-48">
-          <div class="ring-outline relative overflow-hidden rounded-xl">
+          <div data-anima class="float-idle ring-outline relative overflow-hidden rounded-xl">
             <Image
               src={photo}
               alt={t('about.photoAlt')}
@@ -248,9 +274,23 @@ const nav = [
           fichero —paso, quedaba "DanielPuma"— y a este cuerpo el espacio
           de la fuente es demasiado ancho. */
         }
-        <span class="name-in" aria-hidden="true"
-          >{firstName}<span class="text-accent ml-[0.26em]">{lastName}</span></span
-        >
+        <span class="name-in" data-anima aria-hidden="true">
+          {
+            letras.map((l, i) => (
+              <span
+                class:list={[
+                  'ltr',
+                  l.acento && 'text-accent',
+                  i === firstName.length && 'ml-[0.26em]',
+                ]}
+                style={`--i:${i}`}
+                data-anima
+              >
+                {l.ch}
+              </span>
+            ))
+          }
+        </span>
       </h1>
 
       {
@@ -346,24 +386,89 @@ const nav = [
      aterrizaria descolocado en el carril. */
   .name-in {
     display: block;
-    animation: name-in 1100ms var(--ease-fluid) 150ms backwards;
+    /* El recorte del conjunto es lo que hace que las letras emerjan de
+       una linea en lugar de aparecer flotando en mitad del aire. */
+    animation: name-wipe 900ms var(--ease-fluid) backwards;
+    clip-path: inset(-25% 0 -25% 0);
   }
 
-  @keyframes name-in {
+  .ltr {
+    display: inline-block;
+    /* El retardo sale del indice, asi no hace falta una regla por letra. */
+    animation: ltr-in 820ms var(--ease-fluid) calc(160ms + var(--i) * 42ms) backwards;
+  }
+
+  @keyframes name-wipe {
     from {
-      opacity: 0;
-      filter: blur(24px);
       clip-path: inset(100% 0 0 0);
     }
     to {
-      opacity: 1;
-      filter: blur(0);
       clip-path: inset(-25% 0 -25% 0);
     }
   }
 
+  @keyframes ltr-in {
+    from {
+      opacity: 0;
+      /* En em, para que el recorrido escale con el cuerpo del titular. */
+      transform: translateY(0.42em);
+      filter: blur(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  /* ---------------- Movimiento en reposo ----------------
+     Sin esto el hero se queda completamente quieto en cuanto termina de
+     entrar. Son dos gestos lentos y de poca amplitud: lo justo para que la
+     pantalla respire, no para llamar la atencion sobre si mismos. */
+  /* La amplitud se apaga conforme avanza el viaje.
+
+     El retrato es una pieza que vuela, y el aterrizaje tiene que caer al
+     pixel. Con el flotar a amplitud fija llegaba oscilando y se quedaba
+     hasta 5 px desviado de su destino, segun en que punto del ciclo
+     estuviera. Multiplicando por lo que queda de recorrido, la amplitud
+     es cero exactamente cuando aterriza, y en el hero —donde importa que
+     se mueva— esta entera. */
+  .float-idle {
+    --idle: calc(1 - var(--morph-p, 0));
+    animation: float-idle 9s var(--ease-fluid) infinite;
+  }
+
+  @keyframes float-idle {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(calc(-0.5rem * var(--idle)));
+    }
+  }
+
+  .aurora {
+    animation: aurora 24s var(--ease-fluid) infinite;
+  }
+
+  @keyframes aurora {
+    0%,
+    100% {
+      transform: translate3d(-8%, -4%, 0) scale(1);
+      opacity: 0.5;
+    }
+    50% {
+      transform: translate3d(8%, 6%, 0) scale(1.15);
+      opacity: 0.85;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .name-in {
+    .name-in,
+    .ltr,
+    .float-idle,
+    .aurora {
       animation: none;
     }
   }

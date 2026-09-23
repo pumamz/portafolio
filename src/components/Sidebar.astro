@@ -52,6 +52,18 @@ const socials = [
 
 const [firstName, ...rest] = site.name.split(' ');
 const lastName = rest.join(' ');
+
+/* La firma se trocea en letras IGUAL que en el hero.
+
+   No es por animarla —aqui no se anima— sino por metricas: un
+   `inline-block` no produce la misma caja de linea que el texto corrido, y
+   el script empareja las dos por su tinta. Con el hero troceado y esto
+   entero, el nombre aterrizaba 2 px desviado. Misma estructura, mismas
+   metricas. */
+const letras = [
+  ...[...firstName].map((ch) => ({ ch, acento: false })),
+  ...[...lastName].map((ch) => ({ ch, acento: true })),
+];
 ---
 
 {/* ---------------- Escritorio: columna fija ---------------- */}
@@ -76,7 +88,19 @@ const lastName = rest.join(' ');
           no crecen igual con la ventana, el aterrizaje baila. */
       }
       <span class="poster block text-[clamp(1rem,1.4vw,1.6rem)]" data-morph-to="name">
-        {firstName}<span class="text-accent ml-[0.26em]">{lastName}</span>
+        {
+          letras.map((l, i) => (
+            <span
+              class:list={[
+                'inline-block',
+                l.acento && 'text-accent',
+                i === firstName.length && 'ml-[0.26em]',
+              ]}
+            >
+              {l.ch}
+            </span>
+          ))
+        }
       </span>
       <span class="sr-only">{site.name}</span>
       <span data-rail-late class="text-text-muted mt-1.5 block text-xs">{t('hero.role')}</span>

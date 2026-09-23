@@ -632,6 +632,23 @@
   }
 }
 
+/* Mientras se mide, nada de adorno se mueve.
+
+   `hero-morph.ts` pone esta marca justo alrededor de sus medidas. Sin
+   ella, la remedida que se hace al cargar las tipografias caeria dentro de
+   la animacion de entrada y guardaria la caja equivocada.
+
+   OJO CON LA ESPECIFICIDAD. `[data-morph-measuring] [data-anima]` vale
+   0,2,0 y empata con la regla que declara la animacion, que Astro emite
+   como `.ltr[data-astro-cid-...]`, tambien 0,2,0. En un empate gana la
+   que va despues, y el <style> del componente se inyecta DESPUES de la
+   hoja global: la guarda no hacia nada y las medidas salian tomadas con
+   una letra a medio entrar. El selector de tipo `html` delante sube a
+   0,2,1 y desempata. */
+html[data-morph-measuring] [data-anima] {
+  animation-name: none;
+}
+
 /* UN SOLO LANDMARK DE NAVEGACION A LA VEZ.
 
    El indice existe dos veces, en el hero y en el carril. Ocultar solo sus
