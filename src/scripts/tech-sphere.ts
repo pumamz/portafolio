@@ -1,7 +1,7 @@
 /**
  * Esfera de tecnologias arrastrable.
  *
- * Por que CSS 3D y no Three.js, teniendo Three ya cargado:
+ * Por que CSS 3D y no WebGL:
  * en WebGL cada logo seria una textura, y se perderia el SVG nitido a
  * cualquier escala, el color de marca por tema, el texto seleccionable y
  * el acceso por teclado. Aqui son los mismos elementos HTML de siempre,

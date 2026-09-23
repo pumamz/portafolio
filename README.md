@@ -1,9 +1,8 @@
 # Portafolio personal
 
 Sitio personal bilingue (espanol / ingles) construido con Astro y Tailwind CSS.
-Estatico, con 6.8 KB de JavaScript comprimido bloqueando el primer pintado.
-El campo de particulas WebGL pesa 127 KB mas, pero entra despues y solo si el
-visitante no ha pedido menos movimiento.
+Estatico, con 5.6 KB de JavaScript comprimido.
+No hay JavaScript diferido: los efectos del hero son CSS.
 
 **En vivo:** [pumamz.vercel.app](https://pumamz.vercel.app) ·
 [version en ingles](https://pumamz.vercel.app/en/)

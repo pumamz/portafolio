@@ -3,8 +3,7 @@ import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import { getLangFromUrl, useTranslations, path } from '../../i18n/utils';
 import { site } from '../../config/site';
-import ParticleField from '../ParticleField.astro';
-import photo from '../../assets/daniel.jpeg';
+import photo from '../../assets/daniel.png';
 
 /**
  * Hero de cartel: el nombre ocupa todo el ancho, anclado abajo.
@@ -52,21 +51,26 @@ const nav = [
 
 {
   /* `isolate` es imprescindible, no decorativo.
-    El canvas y el resplandor usan z-index negativo. Sin un contexto de
+    El foco y el grano usan z-index negativo. Sin un contexto de
     apilamiento propio en esta seccion, ese z negativo los coloca por
-    detras del fondo opaco del documento y desaparecen: el campo de
-    particulas se renderizaba sin que se viera nada. */
+    detras del fondo opaco del documento y desaparecen del todo: paso con
+    el campo de particulas que habia antes aqui, que renderizaba sin que
+    se viera nada y solo se detecto comparando capturas. */
 }
 <section
+  data-reactive-grid
   class="full-bleed relative isolate flex min-h-[calc(100dvh-6.5rem)] flex-col justify-between overflow-hidden px-6 pt-10 pb-10 sm:px-10 sm:pt-12 lg:min-h-[100dvh] lg:pt-16"
 >
-  <div
-    aria-hidden="true"
-    class="bg-accent/12 parallax-slow pointer-events-none absolute top-1/4 left-1/2 -z-10 size-[34rem] -translate-x-1/2 rounded-full blur-[130px]"
-  >
+  {
+    /* Foco que sigue al puntero. `data-reactive-grid` en la seccion es lo
+      que publica --grid-x / --grid-y; el script que las escribe ya existia
+      para la rejilla del stack, asi que esto no anade JavaScript. */
+  }
+  <div aria-hidden="true" class="spotlight text-text pointer-events-none absolute inset-0 -z-10">
   </div>
 
-  <ParticleField />
+  {/* Grano, por encima del foco y por debajo del texto. */}
+  <div aria-hidden="true" class="grain pointer-events-none absolute inset-0 -z-10"></div>
 
   {/* ---------------- Cabecera de la composicion ---------------- */}
   <div class="reveal flex flex-wrap items-start justify-between gap-6" style="--delay: 60ms">
@@ -153,11 +157,18 @@ const nav = [
         distinto en cada una. El 13vw esta calculado para "DANIEL PUMA"
         —once caracteres— contra el ancho util descontando el carril. */
     }
-    <h1
-      class="poster reveal mt-6 text-[clamp(3rem,13vw,13rem)]"
-      style="--delay: 240ms"
-      aria-label={site.name}
-    >
+    {
+      /* El hueco que deja el nombre al fijarse a la ventana. Solo tiene
+        altura donde la transformacion existe; ver `name-slot`. */
+    }
+    <div aria-hidden="true" class="name-slot mt-6"></div>
+
+    {
+      /* Sin `mt-6` aqui: el margen lo pone el hueco de arriba. Al fijarse
+        a la ventana, el margen de este elemento dejaria de contar y la
+        separacion cambiaria segun el navegador. */
+    }
+    <h1 class="poster name-morph text-[clamp(3rem,13vw,13rem)]" aria-label={site.name}>
       {
         /* El espacio entre nombre y apellido es un margen, no un caracter.
           Dos motivos: un espacio suelto entre expresiones desaparece al
@@ -166,7 +177,12 @@ const nav = [
           escala solo con el titular. El nombre completo se anuncia desde
           el aria-label del h1. */
       }
-      <span aria-hidden="true"
+      {
+        /* La entrada va en el hijo, no en el h1: el h1 ya gasta su
+          `animation-name` en la transformacion hacia el carril, y un
+          elemento solo puede tener una lista de animaciones. */
+      }
+      <span class="reveal block" style="--delay: 240ms" aria-hidden="true"
         >{firstName}<span class="text-accent ml-[0.26em]">{lastName}</span></span
       >
     </h1>

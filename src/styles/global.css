@@ -533,6 +533,61 @@
   }
 }
 
+/* Foco que sigue al puntero.
+
+   Sustituye al campo de particulas WebGL. Aquel dibujaba puntos blancos
+   sobre el fondo; este no dibuja nada encima, sino que DESTAPA lo que ya
+   estaba debajo dentro de un circulo difuso que sigue al cursor. Es la
+   diferencia entre espolvorear algo por encima y alumbrar una superficie.
+
+   Cuesta cero kilobytes de JavaScript: reaprovecha las variables que ya
+   publica `data-reactive-grid` (--grid-x, --grid-y, --grid-power), asi que
+   no hay un segundo script escuchando el puntero. Antes esto eran 127 KB
+   de Three.js.
+
+   La capa enmascarada lleva dos cosas: una rejilla tecnica muy tenue y un
+   resplandor de acento. Al pasar el cursor se revelan las dos a la vez, de
+   modo que la pagina parece tener una estructura debajo en lugar de un
+   fondo plano. */
+@utility spotlight {
+  --grid-x: 50%;
+  --grid-y: 40%;
+  --grid-power: 0;
+  background-image:
+    radial-gradient(
+      26rem circle at var(--grid-x) var(--grid-y),
+      color-mix(in oklch, var(--accent) 28%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(to right, currentColor 1px, transparent 1px),
+    linear-gradient(to bottom, currentColor 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    64px 64px,
+    64px 64px;
+  opacity: calc(0.28 + var(--grid-power) * 0.42);
+  mask-image: radial-gradient(
+    30rem circle at var(--grid-x) var(--grid-y),
+    black,
+    transparent calc(72% - var(--grid-power) * 12%)
+  );
+  transition: opacity 700ms var(--ease-fluid);
+}
+
+/* Grano de pelicula. Va sobre TODO el hero, no solo sobre el foco: es lo
+   que impide que un degradado grande se vea como una banda lisa, y lo que
+   da textura a una superficie que por lo demas es color plano.
+
+   Es una turbulencia SVG en linea, no una imagen: no hay peticion de red
+   y no cuesta un solo byte de transferencia extra mas alla del propio
+   CSS. `contrast` sube el ruido y `brightness` lo baja de intensidad para
+   que se lea como grano y no como suciedad. */
+@utility grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+}
+
 /* Escape del margen que reserva el carril fijo.
 
    El contenido va dentro de un contenedor con `padding-left: 16rem` a
@@ -547,6 +602,94 @@
   @media (width >= 64rem) {
     margin-left: -16rem;
     width: calc(100% + 16rem);
+  }
+}
+
+/* El nombre del hero SE CONVIERTE en la firma del carril.
+
+   No son dos elementos, uno que se va y otro que llega: es el mismo
+   nodo, fijado a la ventana, que encoge y viaja hasta el hueco del
+   carril conforme se desplaza la pagina. Por eso se lee como una
+   transformacion y no como un relevo.
+
+   ---------------------------------------------------------------
+   LOS CINCO NUMEROS QUE HAY QUE AFINAR MIRANDO LA PANTALLA.
+   Estan todos aqui a proposito: no hay ni uno repartido por los
+   componentes. Si el nombre no aterriza donde debe, se tocan estos.
+
+     --morph-left      donde arranca en horizontal (padding del hero)
+     --morph-bottom    a que altura del borde inferior arranca
+     --morph-rail-left donde aterriza (padding del carril)
+     --morph-rail-top  a que altura del borde superior aterriza
+     --morph-scale     cuanto encoge; es el cociente entre el cuerpo
+                       final y el de partida
+   ---------------------------------------------------------------
+
+   El cociente de escala solo se mantiene constante si los dos cuerpos
+   estan en la misma unidad. El del hero esta en vw; por eso la firma del
+   carril tambien, y no en rem. */
+@utility name-morph {
+  --morph-left: 2.5rem;
+  --morph-bottom: 7.5rem;
+  --morph-rail-left: 1.75rem;
+  --morph-rail-top: 3.1rem;
+  --morph-scale: 0.108;
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      position: fixed;
+      left: var(--morph-left);
+      bottom: var(--morph-bottom);
+      /* Por encima del carril (z-40), que es donde va a aterrizar. */
+      z-index: 41;
+      margin: 0;
+      transform-origin: left bottom;
+      animation-name: name-to-rail;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(root block);
+      animation-range: 5vh 70vh;
+    }
+  }
+}
+
+@keyframes name-to-rail {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    /* El borde inferior del bloque esta a (100vh - morph-bottom) del alto
+       de la ventana; tiene que acabar a morph-rail-top. De ahi la resta. */
+    transform: translate(
+        calc(var(--morph-rail-left) - var(--morph-left)),
+        calc(var(--morph-rail-top) + var(--morph-bottom) - 100vh)
+      )
+      scale(var(--morph-scale));
+  }
+}
+
+/* Hueco que deja el nombre al fijarse a la ventana.
+
+   Al sacarlo del flujo, la barra de enlaces de abajo subiria de golpe. El
+   hueco solo existe cuando existe la transformacion, asi que vive dentro
+   del mismo @supports. La altura es el cuerpo por la interlinea de
+   `poster`; si se cambia una, hay que cambiar la otra. */
+@utility name-slot {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      height: calc(clamp(3rem, 13vw, 13rem) * 0.86);
+    }
+  }
+}
+
+/* La firma propia del carril se esconde cuando el nombre del hero va a
+   ocupar su sitio. Sin esto se verian las dos, una encima de otra. */
+@utility rail-wordmark {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      visibility: hidden;
+    }
   }
 }
 

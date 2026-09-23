@@ -51,12 +51,19 @@ const lastName = rest.join(' ');
   class="rail-reveal border-border/70 bg-bg fixed inset-y-0 left-0 z-40 hidden w-64 flex-col gap-8 overflow-y-auto border-r px-7 py-8 lg:flex"
   aria-label={t('hero.identity')}
 >
+  {
+    /* La firma va en vw y no en rem a proposito: el nombre del hero
+      aterriza aqui encogido por un factor fijo, y ese factor solo se
+      mantiene si el cuerpo de salida y el de llegada estan en la misma
+      unidad. `rail-wordmark` la esconde cuando esa transformacion existe,
+      para que no se vean las dos superpuestas. */
+  }
   <a href={home} class="group block">
-    <span class="font-display block text-xl" style="font-stretch: 80%; font-weight: 800">
-      {firstName}{' '}
-      <span class="text-accent">{lastName}</span>
+    <span class="poster rail-wordmark block text-[clamp(1rem,1.4vw,1.6rem)]" aria-hidden="true">
+      {firstName}<span class="text-accent ml-[0.26em]">{lastName}</span>
     </span>
-    <span class="text-text-muted mt-1 block text-xs">{t('hero.role')}</span>
+    <span class="sr-only">{site.name}</span>
+    <span class="text-text-muted mt-1.5 block text-xs">{t('hero.role')}</span>
   </a>
 
   <nav aria-label={t('hero.index')} class="border-border/70 border-t pt-7">

@@ -23,7 +23,6 @@ Antes de cuestionar una decision tecnica, leer [`docs/adr/`](./docs/adr/).
 | TypeScript | 6.x     | Fijado: TS 7 rompe `astro check`               |
 | Bun        | 1.3+    | Gestor de paquetes. Nunca usar npm aqui.       |
 | Node       | 22.12+  | Exigido en `engines`.                          |
-| Three.js   | 0.185   | Solo el campo de particulas. Carga diferida.   |
 | astro-icon | 1.x     | simple-icons y lucide, inlineados como SVG en  |
 |            |         | build: sin peticiones ni JS de cliente.        |
 
@@ -167,22 +166,21 @@ src/
     ui.ts               Todos los textos de interfaz, ES y EN.
     utils.ts            getLangFromUrl, useTranslations, path, routes.
   layouts/
-    BaseLayout.astro    head, SEO, JSON-LD, tema, header y footer.
+    BaseLayout.astro    head, SEO, JSON-LD, tema, carril y pie.
   components/
-    Header.astro        Navegacion, conmutadores.
+    Sidebar.astro       Carril fijo de identidad y navegacion. Nace
+                        del hero al desplazar. Sustituye a la cabecera.
     Footer.astro
     ThemeToggle.astro   Claro/oscuro sin JavaScript de framework.
     LanguageSwitcher.astro
     SectionHeading.astro
     ProjectCard.astro   Tarjeta de proyecto en la portada y el indice.
     CaseStudy.astro     Cuerpo de la pagina de detalle.
-    ParticleField.astro Lienzo WebGL del hero.
     TechSphere.astro    Esfera de tecnologias arrastrable.
     PointerEffects.astro  Solo arranca scripts, no renderiza nada.
     sections/           Hero, Stats, Work, About, Timeline, Stack,
                         Services y Contact, en ese orden en la portada.
   scripts/              Logica de cliente. Ver el contrato mas abajo.
-    particle-field.ts   Escena Three.js. La unica carga pesada.
     tech-sphere.ts      Esfera en CSS 3D, no WebGL.
     pointer-effects.ts  Inclinacion de tarjetas.
     ambient.ts          Rejilla reactiva, contadores, profundidad de foto.
@@ -236,8 +234,7 @@ Un efecto interactivo se parte en dos: el `.astro` lleva el marcado y un
 Ese script **debe** registrar `astro:before-swap` para destruir y
 `astro:after-swap` para volver a montar. Con view transitions el `<body>` se
 reemplaza en cada navegacion: lo que no se libera deja escuchas colgando de
-nodos muertos y, en el caso del campo de particulas, la GPU trabajando para
-un canvas que ya no existe. Por eso cada modulo de `src/scripts/` exporta su
+nodos muertos: escuchas de puntero sobre elementos que ya se reemplazaron. Por eso cada modulo de `src/scripts/` exporta su
 pareja `init`/`destroy`.
 
 ## Presupuesto de rendimiento
@@ -247,24 +244,30 @@ importa de verdad, que es lo que bloquea el primer pintado.
 
 | Metrica            | Presupuesto | Actual     |
 | ------------------ | ----------- | ---------- |
-| JS inicial (gzip)  | < 30 KB     | **6.8 KB** |
-| JS diferido (gzip) | < 150 KB    | **127 KB** |
-| CSS (gzip)         | < 15 KB     | **9.4 KB** |
+| JS inicial (gzip)  | < 30 KB     | **5.6 KB** |
+| JS diferido (gzip) | < 150 KB    | **0 KB**   |
+| CSS (gzip)         | < 15 KB     | **10 KB**  |
+
+**Ya no hay JavaScript diferido.** El campo de particulas WebGL se retiro y
+con el los 127 KB de Three.js. El efecto de puntero del hero es ahora un
+foco enmascarado en CSS que reaprovecha el script de la rejilla reactiva,
+que ya existia. Los unicos scripts propios (tema, puntero, contadores) los
+inlinea Astro en el HTML por ser pequenos; el unico fichero .js externo es
+el enrutador de las view transitions.
 
 Las dos secciones nuevas (Trayectoria y Servicios) no anaden ni un byte de
 JavaScript: la linea que se dibuja al bajar es `animation-timeline: view()`,
 no un IntersectionObserver.
 
-**Regla:** nada que bloquee el primer pintado. Three.js entra por `import()`
-dentro de `requestIdleCallback` y no debe aparecer nunca en el HTML inicial
-ni con `modulepreload`. Comprobarlo asi tras tocar la escena:
+**Regla:** nada que bloquee el primer pintado. Si algun dia vuelve a entrar
+una libreria pesada, entra por `import()` diferido y no debe aparecer nunca
+en el HTML inicial ni con `modulepreload`:
 
 ```bash
-grep -nE 'modulepreload|particle-field\.' dist/index.html
+grep -n 'modulepreload' dist/index.html
 ```
 
-No debe salir nada. El atributo `data-particle-field` del canvas no lleva
-punto, asi que no casa con el patron.
+No debe salir nada.
 
 Comprobar tras cualquier cambio que anada interactividad. **Se mide en gzip**,
 que es lo que viaja por la red y en lo que esta expresado el presupuesto; el

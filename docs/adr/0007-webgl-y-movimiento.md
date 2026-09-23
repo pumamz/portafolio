@@ -1,9 +1,22 @@
 # 0007 - WebGL con Three.js para el campo de particulas
 
-- **Estado:** aceptado
+- **Estado:** **revertido** (2026-09-22)
 - **Fecha:** 2026-07-26
 - **Relacion:** matiza el [ADR-0001](./0001-framework.md), que priorizaba
   "cero JavaScript por defecto"
+
+> **Revertido.** El campo de particulas se retiro del sitio por decision de
+> diseno: el autor no queria puntos blancos sobre el hero. El efecto de
+> puntero que lo sustituye es un foco enmascarado en CSS que reaprovecha el
+> script de la rejilla reactiva, sin una sola dependencia nueva.
+>
+> Consecuencia: Three.js sale del proyecto y con el los 127 KB de JavaScript
+> diferido. El presupuesto de JS diferido queda en cero y el ADR-0001
+> vuelve a aplicarse sin matices.
+>
+> Lo que sigue se conserva porque el razonamiento sobre el coste de una
+> escena WebGL y sobre como aislarla del primer pintado sigue siendo valido
+> si alguna vez vuelve a plantearse.
 
 ## Contexto
 
