@@ -248,7 +248,7 @@ const nav = [
           fichero —paso, quedaba "DanielPuma"— y a este cuerpo el espacio
           de la fuente es demasiado ancho. */
         }
-        <span aria-hidden="true"
+        <span class="name-in" aria-hidden="true"
           >{firstName}<span class="text-accent ml-[0.26em]">{lastName}</span></span
         >
       </h1>
@@ -329,6 +329,45 @@ const nav = [
 </div>
 
 <style>
+  /* ENTRADA DEL NOMBRE.
+
+     Se descubre de abajo arriba, como un cartel al que le quitan la funda,
+     y entra enfocandose en lugar de simplemente apareciendo.
+
+     Va en el HIJO y no en el h1 porque el h1 lleva el transform que
+     escribe el script del viaje, y una animacion CSS sobre transform
+     ganaria en la cascada y lo pisaria.
+
+     Y solo anima `clip-path`, `opacity` y `filter`: NINGUNA de las tres
+     cambia la caja del elemento. Es deliberado: el script mide la tinta
+     del nombre al cargar y otra vez cuando llegan las tipografias, y esa
+     segunda medida cae justo dentro de esta animacion. Con un `transform`
+     o un `scale` aqui, mediria una caja a medio animar y el nombre
+     aterrizaria descolocado en el carril. */
+  .name-in {
+    display: block;
+    animation: name-in 1100ms var(--ease-fluid) 150ms backwards;
+  }
+
+  @keyframes name-in {
+    from {
+      opacity: 0;
+      filter: blur(24px);
+      clip-path: inset(100% 0 0 0);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+      clip-path: inset(-25% 0 -25% 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .name-in {
+      animation: none;
+    }
+  }
+
   /* Entrada escalonada al cargar. Nada que ver con la transformacion al
      carril, que la gobierna el scroll: esto solo es la llegada inicial.
      Cada elemento lleva su propio --delay inline, lo que evita escribir

@@ -277,6 +277,40 @@ async function run() {
   });
   check('Las estrellas toman el color del tema', starRgb !== '160, 176, 200', starRgb);
 
+  /* ---------------- El carril no asoma durante el hero ---------------
+     Un filete puesto como `border` de un contenedor se pinta siempre,
+     por mucho que sus hermanos esten a opacidad cero: asi se colaba un
+     separador del carril flotando sobre la primera pantalla. */
+  await scrollTo(page, 0);
+  const asoma = await page.evaluate(() => {
+    const el = document.querySelector('[data-rail]');
+    const fuera = [];
+    /* Opacidad ACUMULADA: la del nodo no basta, porque lo habitual es que
+       el que esta a cero sea un ancestro. */
+    const opacidad = (n) => {
+      let o = 1;
+      let x = n;
+      while (x && x !== document.body) {
+        o *= Number(getComputedStyle(x).opacity);
+        x = x.parentElement;
+      }
+      return o;
+    };
+    el.querySelectorAll('*').forEach((n) => {
+      const cs = getComputedStyle(n);
+      if (opacidad(n) < 0.02 || cs.visibility === 'hidden') return;
+      const pintaBorde = ['Top', 'Right', 'Bottom', 'Left'].some(
+        (l) => parseFloat(cs[`border${l}Width`]) > 0,
+      );
+      const pintaFondo = cs.backgroundColor !== 'rgba(0, 0, 0, 0)';
+      if ((pintaBorde || pintaFondo) && n.getBoundingClientRect().width > 0) {
+        fuera.push(n.tagName + '.' + String(n.className).slice(0, 30));
+      }
+    });
+    return fuera;
+  });
+  check('El carril no asoma durante el hero', asoma.length === 0, asoma.join(' | ') || 'nada');
+
   /* ---------------- El primer pintado ya llega en su sitio ----------
      El HTML sale con el carril entero visible, que es lo correcto cuando
      no hay JavaScript. Sin un estado de arranque aplicado en el <head>,

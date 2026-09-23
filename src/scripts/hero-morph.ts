@@ -53,8 +53,21 @@ const DESKTOP = '(min-width: 64rem)';
 /** Desfase maximo entre la primera pieza y la ultima. */
 const MAX_STAGGER = 0.16;
 
-/** A partir de aqui se considera aterrizado y se cede el relevo. */
-const LANDED = 0.995;
+/**
+ * A partir de aqui se considera aterrizado y se cede el relevo.
+ *
+ * Con margen de sobra antes del final, no pegado a el. Estaba en 0.995 y
+ * producia un tirón hacia arriba intermitente: cuando la seccion se
+ * despega, las piezas que vuelan son hijas suyas y suben con ella; si el
+ * relevo no se habia dado todavia en ese fotograma, se veian subir. Con el
+ * umbral aqui quedan 60 px de scroll de colchon entre el relevo y el
+ * despegue, asi que ningun fotograma puede caer entre los dos.
+ *
+ * El coste es nulo: la curva de frenada deja las piezas al 99.96% del
+ * recorrido en este punto, menos de un cuarto de pixel de la posicion
+ * final incluso en la que mas tarde llega.
+ */
+const LANDED = 0.94;
 
 /**
  * Frenada larga: las piezas salen decididas y se posan. `linear` delata
@@ -212,38 +225,38 @@ export function initHeroMorph(): void {
    * Sin termino de scroll: la seccion esta quieta, asi que sus hijos
    * tambien. Es justo lo que elimina el parpadeo.
    */
+
+  /** Avance actual, de 0 a 1. */
+  function progress(): number {
+    return clamp01(-pin!.getBoundingClientRect().top / distance);
+  }
+
+  /** Solo el relevo, para poder resolverlo sin esperar al rAF. */
+  function marcarAterrizaje() {
+    const raw = progress();
+    if (raw >= LANDED) html.dataset.morphDone = '';
+    else delete html.dataset.morphDone;
+    setInert(heroFade, raw > 0.625);
+    setInert(railLate, raw < 0.62);
+  }
+
+  /** Coloca cada pieza segun lo recorrido del contenedor anclado. */
   function apply() {
-    const top = pin!.getBoundingClientRect().top;
-    const raw = clamp01(-top / distance);
+    const raw = progress();
 
     const p4 = raw.toFixed(4);
     scopes.forEach((el) => el.style.setProperty('--morph-p', p4));
 
-    // Al aterrizar se cede el relevo a las piezas del carril. En ese
-    // punto las dos estan superpuestas al pixel, asi que el cambio no se
-    // ve; y a partir de ahi el carril es `fixed` de verdad, de modo que
-    // sigue en su sitio cuando el hero por fin se desplaza.
-    if (raw >= LANDED) html.dataset.morphDone = '';
-    else delete html.dataset.morphDone;
+    /* Pasado el umbral se fija el final EXACTO, sin pasar por la curva.
 
-    /* LO QUE NO SE VE NO SE TABULA.
- 
-       Las dos reglas de opacidad de global.css apagan elementos sin
-       sacarlos del recorrido de tabulacion. Medido: cuatro paradas de Tab
-       recibian el foco sin pintar un solo pixel de anillo, y dos de ellas
-       —las llamadas a la accion del hero— teletransportaban la pagina
-       unos 2000 px hacia atras al enfocarlas desde una seccion de abajo.
-       Un usuario de teclado perdia su sitio sin ver por que.
- 
-       Los umbrales son los mismos que usa el CSS, no valores aparte: el
-       fundido del hero llega a cero en 1/1.6 = 0.625 y el del carril
-       arranca en 0.62, que es donde el otro acaba de llegar a cero. */
-    setInert(heroFade, raw > 0.625);
-    setInert(railLate, raw < 0.62);
+       A 0.94 la frenada deja las piezas a 0.41 px de su destino. Es
+       invisible, pero es una discontinuidad de verdad justo en el
+       fotograma del relevo, y era barato quitarla del todo. */
+    const aterrizado = raw >= LANDED;
 
     pairs.forEach((p) => {
       const span = 1 - p.stagger;
-      const t = easeOut(clamp01((raw - p.stagger) / span));
+      const t = aterrizado ? 1 : easeOut(clamp01((raw - p.stagger) / span));
       const s = 1 + (p.scale - 1) * t;
       p.el.style.transform = `translate3d(${(p.dx * t).toFixed(2)}px, ${(p.dy * t).toFixed(2)}px, 0) scale(${s.toFixed(4)})`;
     });
@@ -251,6 +264,14 @@ export function initHeroMorph(): void {
 
   let frame = 0;
   const onScroll = () => {
+    /* El relevo se decide EN EL EVENTO, no en el rAF.
+
+       Diferirlo metia un fotograma de retraso entre el scroll y el cambio,
+       y era la otra mitad del tirón: con un gesto rapido, el fotograma que
+       se pintaba mientras tanto ya mostraba las piezas desplazadas. Es una
+       lectura y un atributo, barato. Las escrituras de transform, que son
+       nueve, si siguen difiriendose. */
+    marcarAterrizaje();
     cancelAnimationFrame(frame);
     frame = requestAnimationFrame(apply);
   };
@@ -264,11 +285,13 @@ export function initHeroMorph(): void {
         return;
       }
       measure();
+      marcarAterrizaje();
       apply();
     });
   };
 
   measure();
+  marcarAterrizaje();
   apply();
 
   /* VOLVER A MEDIR CUANDO LAS TIPOGRAFIAS ESTEN LISTAS.
@@ -282,6 +305,7 @@ export function initHeroMorph(): void {
      viera un salto al ceder el relevo al carril. */
   document.fonts?.ready.then(() => {
     measure();
+    marcarAterrizaje();
     apply();
   });
 

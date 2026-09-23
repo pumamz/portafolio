@@ -113,8 +113,21 @@ const lastName = rest.join(' ');
       </ul>
     </nav>
 
-    {/* mt-auto empuja el pie del carril al fondo de la ventana. */}
-    <div class="border-border/70 mt-auto flex flex-col gap-5 border-t pt-7">
+    {
+      /* mt-auto empuja el pie del carril al fondo de la ventana.
+
+        El filete va en un hijo propio marcado como tardio, no como borde
+        de este contenedor: un borde se pinta siempre, asi que se veia
+        flotando sobre el hero antes de que el carril existiera. */
+    }
+    <div class="mt-auto flex flex-col gap-5 pt-7">
+      <div
+        data-rail-late
+        aria-hidden="true"
+        class="border-border/70 absolute inset-x-7 -mt-7 border-t"
+      >
+      </div>
+
       <div data-morph-to="photo" class="w-28">
         <div class="ring-outline relative overflow-hidden rounded-lg">
           <Image
