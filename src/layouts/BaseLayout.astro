@@ -88,6 +88,38 @@ const jsonLd = {
 
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
+    <!-- Estado inicial de la transformacion, ANTES del primer pintado.
+
+         Sin esto la pagina se pintaba una vez con el carril entero visible
+         —que es el estado correcto cuando no hay JavaScript— y el modulo
+         lo ocultaba un instante despues: el visitante veia el carril y las
+         piezas del hero aparecer y desaparecer de golpe. Ese era el "tic"
+         al cargar o recargar.
+
+         Marca solo el ARRANQUE, no la transformacion en si. Asi, si el
+         modulo nunca llega a ejecutarse, no queda ni pantalla y media de
+         scroll muerto ni un carril a medias: se ve el hero, que ya lleva
+         su propio indice y sus conmutadores. -->
+    <script is:inline>
+      (() => {
+        const apto =
+          matchMedia('(min-width: 64rem)').matches &&
+          !matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!apto) return;
+
+        const html = document.documentElement;
+        html.dataset.morphBoot = '';
+
+        // Red de seguridad: si el modulo no se hace cargo (fallo de red,
+        // error de script), se deshace el arranque y la pagina vuelve al
+        // estado sin transformacion, que es completo y navegable. Sin
+        // esto quedaria un carril invisible para siempre.
+        setTimeout(() => {
+          if (html.dataset.morph !== 'on') delete html.dataset.morphBoot;
+        }, 3000);
+      })();
+    </script>
+
     <!-- Tema: se aplica ANTES del primer pintado para evitar el
          destello blanco al cargar en modo oscuro. Por eso es inline
          y sincrono, no un componente. -->

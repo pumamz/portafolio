@@ -82,11 +82,17 @@ const lastName = rest.join(' ');
       <span data-rail-late class="text-text-muted mt-1.5 block text-xs">{t('hero.role')}</span>
     </a>
 
-    <nav
-      data-morph-group="rail"
-      aria-label={t('hero.index')}
-      class="border-border/70 border-t pt-7"
-    >
+    {
+      /* El filete va aparte del <nav>.
+
+        Estaba puesto como borde superior del nav, y el nav se muestra de
+        golpe al ceder el relevo: la linea aparecia de la nada en el ultimo
+        instante. Como elemento propio entra fundiendose con el resto de lo
+        que llega tarde. */
+    }
+    <div data-rail-late aria-hidden="true" class="border-border/70 border-t"></div>
+
+    <nav data-morph-group="rail" aria-label={t('hero.index')} class="-mt-1 pt-6">
       <ul class="flex flex-col gap-3">
         {
           nav.map((item, i) => (

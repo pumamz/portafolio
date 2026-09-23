@@ -168,13 +168,22 @@ async function run() {
   await page.waitForTimeout(400);
 
   const landing = await page.evaluate(() => {
+    /* Se compara la TINTA, no la caja. Comparando cajas esta comprobacion
+       daba 0,0,0 en verde mientras el nombre aterrizaba un 44% mas grande:
+       las dos son elementos de bloque y sus cajas miden el contenedor. */
+    const ink = (el) => {
+      const r = document.createRange();
+      r.selectNodeContents(el);
+      const box = r.getBoundingClientRect();
+      return box.width > 0 ? box : el.getBoundingClientRect();
+    };
     const out = [];
     document.querySelectorAll('[data-morph]').forEach((el) => {
       const key = el.dataset.morph;
       const to = document.querySelector(`[data-morph-to="${key}"]`);
       if (!to) return;
-      const a = el.getBoundingClientRect();
-      const b = to.getBoundingClientRect();
+      const a = ink(el);
+      const b = ink(to);
       out.push({
         key,
         dx: Math.round(a.left - b.left),
@@ -267,6 +276,44 @@ async function run() {
     return `${d[0]}, ${d[1]}, ${d[2]}`;
   });
   check('Las estrellas toman el color del tema', starRgb !== '160, 176, 200', starRgb);
+
+  /* ---------------- El primer pintado ya llega en su sitio ----------
+     El HTML sale con el carril entero visible, que es lo correcto cuando
+     no hay JavaScript. Sin un estado de arranque aplicado en el <head>,
+     la pagina se pintaba asi una vez y el modulo lo ocultaba un instante
+     despues: se veia el carril aparecer y desaparecer de golpe. Se
+     comprueba bloqueando el modulo, que es exactamente lo que el
+     visitante tiene en pantalla durante ese primer fotograma. */
+  const ctxBoot = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    colorScheme: 'dark',
+  });
+  const pBoot = await ctxBoot.newPage();
+  await pBoot.route(/PointerEffects.*\.js/, (route) => route.abort());
+  await pBoot.goto(BASE, { waitUntil: 'networkidle' });
+  await pBoot.waitForTimeout(500);
+  const arranque = await pBoot.evaluate(() => {
+    const op = (q) => Number(getComputedStyle(document.querySelector(q)).opacity);
+    const vis = (q) => getComputedStyle(document.querySelector(q)).visibility;
+    const pin = document.querySelector('[data-morph-pin]');
+    return {
+      panel: op('[data-rail-panel]'),
+      nombreCarril: vis('[data-morph-to="name"]'),
+      nombreHero: vis('[data-morph="name"]'),
+      alto: pin.offsetHeight / window.innerHeight,
+    };
+  });
+  check(
+    'El carril no parpadea en el primer pintado',
+    arranque.panel === 0 && arranque.nombreCarril === 'hidden' && arranque.nombreHero === 'visible',
+    `panel ${arranque.panel}, carril ${arranque.nombreCarril}, hero ${arranque.nombreHero}`,
+  );
+  check(
+    'Sin zona muerta si el modulo no carga',
+    arranque.alto < 1.05,
+    `${Math.round(arranque.alto * 100) / 100} pantallas`,
+  );
+  await ctxBoot.close();
 
   /* ---------------- Sin scroll horizontal ---------------- */
   const overflow = await page.evaluate(

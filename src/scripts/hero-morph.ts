@@ -69,6 +69,27 @@ function clamp01(n: number): number {
   return n < 0 ? 0 : n > 1 ? 1 : n;
 }
 
+/**
+ * Caja de la TINTA, no del elemento.
+ *
+ * Aqui estaba el salto al final del viaje. El nombre del hero es un `h1` y
+ * la firma del carril un `span` de bloque: los dos ocupan todo el ancho de
+ * su contenedor, asi que el cociente de sus cajas medía la relacion entre
+ * contenedores y no entre textos. Salia 200/200 = 1 y la comprobacion lo
+ * daba por bueno, mientras el texto quedaba a 36.6 px contra los 25.4 px
+ * del destino: un 44% de mas que saltaba de golpe al ceder el relevo.
+ *
+ * Un Range sobre el contenido devuelve la caja de lo que de verdad se
+ * pinta, y funciona igual con texto que con una imagen.
+ */
+function inkRect(el: HTMLElement): DOMRect {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const r = range.getBoundingClientRect();
+  range.detach?.();
+  return r.width > 0 && r.height > 0 ? r : el.getBoundingClientRect();
+}
+
 export function initHeroMorph(): void {
   const stage = document.querySelector<HTMLElement>('[data-morph-root]');
   const pin = document.querySelector<HTMLElement>('[data-morph-pin]');
@@ -157,19 +178,28 @@ export function initHeroMorph(): void {
     const stageRect = stage!.getBoundingClientRect();
 
     pairs.forEach((p) => {
-      const from = p.el.getBoundingClientRect();
-      const to = p.target.getBoundingClientRect();
+      const box = p.el.getBoundingClientRect();
+      const from = inkRect(p.el);
+      const to = inkRect(p.target);
       if (from.width === 0 || to.width === 0) {
         p.dx = p.dy = 0;
         p.scale = 1;
         return;
       }
-      // El destino esta en `fixed`: su caja ya esta en coordenadas de
-      // ventana y no depende del scroll. El origen se traduce a la
-      // posicion que tendra la seccion cuando este anclada arriba.
-      p.dx = to.left - (from.left - stageRect.left);
-      p.dy = to.top - (from.top - stageRect.top);
       p.scale = to.width / from.width;
+
+      /* El escalado tiene su origen en la esquina de la CAJA, pero lo que
+         tiene que aterrizar en su sitio es la TINTA. Asi que al
+         desplazamiento hay que descontarle cuanto se mueve la tinta
+         dentro de su propia caja al encoger.
+
+         El destino esta en `fixed`: su caja ya esta en coordenadas de
+         ventana y no depende del scroll. El origen se traduce a la
+         posicion que tendra la seccion cuando este anclada arriba. */
+      const dentroX = (from.left - box.left) * p.scale;
+      const dentroY = (from.top - box.top) * p.scale;
+      p.dx = to.left - (box.left - stageRect.left) - dentroX;
+      p.dy = to.top - (box.top - stageRect.top) - dentroY;
       // El origen arriba-izquierda hace que el escalado no desplace la
       // pieza: la esquina se queda quieta y solo encoge hacia dentro.
       p.el.style.transformOrigin = 'left top';

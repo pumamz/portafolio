@@ -610,7 +610,8 @@
    necesita su caja para saber adonde volar. `visibility` y no `display`
    justamente por eso, porque tienen que seguir ocupando su sitio. Lo que
    se ve ahi al final del viaje son las piezas del hero aterrizadas. */
-[data-morph='on'] [data-morph-to] {
+[data-morph='on'] [data-morph-to],
+[data-morph-boot]:not([data-morph-done]) [data-morph-to] {
   visibility: hidden;
 }
 
@@ -625,8 +626,8 @@
    En ese estado el carril ya es la navegacion completa, asi que las
    copias que sobran son las del hero. */
 @media (width >= 64rem) {
-  html:not([data-morph='on']) [data-morph],
-  html:not([data-morph='on']) [data-morph-group='hero'] {
+  html:not([data-morph-boot]) [data-morph],
+  html:not([data-morph-boot]) [data-morph-group='hero'] {
     visibility: hidden;
   }
 }
@@ -640,7 +641,7 @@
 
    La visibilidad es heredable y se puede volver a encender en los hijos,
    que es lo que hacen las reglas del relevo de aqui abajo. */
-[data-morph='on']:not([data-morph-done]) [data-morph-group='rail'],
+[data-morph-boot]:not([data-morph-done]) [data-morph-group='rail'],
 [data-morph='on'][data-morph-done] [data-morph-group='hero'] {
   visibility: hidden;
 }
@@ -663,8 +664,12 @@
 
 /* El panel del carril aparece al ritmo del viaje. Sin esto habria una
    columna opaca partiendo la pantalla durante el hero. */
-[data-morph='on'] [data-rail-panel] {
-  opacity: var(--morph-p, 1);
+[data-morph-boot] [data-rail-panel] {
+  /* Reserva 0 y no 1: en el arranque, antes de que el modulo escriba
+     nada, el avance es CERO. Con reserva 1 el panel se pintaba opaco en
+     el primer fotograma y se apagaba despues, que es justo el parpadeo
+     que este arranque existe para quitar. */
+  opacity: var(--morph-p, 0);
 }
 
 /* Lo que NO vuela del carril (el rol, la ubicacion, los conmutadores) solo
@@ -674,8 +679,8 @@
    flotando sobre el hero, con el panel todavia transparente: no parecia
    un carril formandose, parecia basura. Ahora espera a que el panel ya
    tenga cuerpo. */
-[data-morph='on'] [data-rail-late] {
-  opacity: clamp(0, calc((var(--morph-p, 1) - 0.62) / 0.38), 1);
+[data-morph-boot] [data-rail-late] {
+  opacity: clamp(0, calc((var(--morph-p, 0) - 0.62) / 0.38), 1);
 }
 
 /* EL ALTO QUE BLOQUEA SOLO EXISTE SI HAY TRANSFORMACION.
@@ -702,12 +707,12 @@
    queda puesto: atado solo a [data-morph='on'] quedaba invisible para
    siempre con `prefers-reduced-motion` y la derecha vacia del todo, que
    es justo lo que este panel existe para evitar. */
-html:not([data-morph='on']) [data-hero-reveal] {
+html:not([data-morph-boot]) [data-hero-reveal] {
   opacity: 1;
 }
 
-[data-morph='on'] [data-hero-reveal] {
-  --reveal: clamp(0, calc((var(--morph-p, 1) - 0.2) / 0.45), 1);
+[data-morph-boot] [data-hero-reveal] {
+  --reveal: clamp(0, calc((var(--morph-p, 0) - 0.2) / 0.45), 1);
   opacity: var(--reveal);
   transform: translateY(calc((1 - var(--reveal)) * 2.5rem));
 }
@@ -717,7 +722,7 @@ html:not([data-morph='on']) [data-hero-reveal] {
    de empujar a la anterior hacia arriba. Solo el fondo: el contenido no
    puede moverse aqui porque las piezas que vuelan tienen que aterrizar
    exactamente donde se midio. */
-[data-morph='on'] [data-hero-exit] {
+[data-morph-boot] [data-hero-exit] {
   opacity: clamp(0, calc((1 - var(--morph-p, 0)) / 0.25), 1);
 }
 
@@ -728,7 +733,7 @@ html:not([data-morph='on']) [data-hero-reveal] {
    dos a la vez, superpuestos. Las piezas que viajan van clavadas a la
    ventana y el resto sube con el scroll: si ese resto no se apaga, se
    cruzan. */
-[data-morph='on'] [data-hero-fade] {
+[data-morph-boot] [data-hero-fade] {
   opacity: clamp(0, calc(1 - var(--morph-p, 0) * 1.6), 1);
 }
 
